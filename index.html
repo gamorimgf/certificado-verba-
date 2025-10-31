@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏥 Certificado de Verba - Grupo Fleury</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- CABEÇALHO BONITO -->
+        <header class="header">
+            <h1>🏥 Certificado de Verba</h1>
+            <p>Sistema Simples para Liberação de Valores</p>
+            <p><strong>Gestor:</strong> Gustavo - Relações Trabalhistas</p>
+        </header>
+
+        <!-- ÁREA DOS FILTROS -->
+        <section class="filtros">
+            <h2>🔍 Escolha seus Centros de Custo</h2>
+            
+            <div class="filtro-item">
+                <label>
+                    <input type="checkbox" id="usarN2"> 
+                    📊 Filtrar por Diretoria/Marca
+                </label>
+                <select id="listaN2" disabled>
+                    <option>Carregando dados...</option>
+                </select>
+            </div>
+
+            <div class="filtro-item">
+                <label>
+                    <input type="checkbox" id="usarN3"> 
+                    🏢 Filtrar por Gerência
+                </label>
+                <select id="listaN3" disabled>
+                    <option>Carregando dados...</option>
+                </select>
+            </div>
+
+            <div class="filtro-item">
+                <label>
+                    <input type="checkbox" id="usarCC"> 
+                    💼 Filtrar por Centro de Custo
+                </label>
+                <select id="listaCC" disabled>
+                    <option>Carregando dados...</option>
+                </select>
+            </div>
+
+            <div class="botoes">
+                <button onclick="aplicarFiltros()" class="botao-verde">✅ Aplicar Filtros</button>
+                <button onclick="limparTudo()" class="botao-cinza">🗑️ Limpar Tudo</button>
+            </div>
+        </section>
+
+        <!-- ÁREA DOS RESULTADOS -->
+        <section class="resultados">
+            <h2>📋 Centros Selecionados</h2>
+            <div id="listaCentros">
+                <p>👆 Use os filtros acima para selecionar centros</p>
+            </div>
+            
+            <div class="total">
+                <h3>💰 Total Disponível: R\$ <span id="valorTotal">0,00</span></h3>
+            </div>
+
+            <button onclick="gerarPDF()" id="botaoGerar" disabled class="botao-azul">
+                📄 Gerar Certificado PDF
+            </button>
+        </section>
+
+        <!-- RODAPÉ -->
+        <footer class="rodape">
+            <p>Sistema desenvolvido para o Grupo Fleury - 2024</p>
+        </footer>
+    </div>
+
+    <!-- BIBLIOTECAS MÁGICAS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Papa/5.3.0/papaparse.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
