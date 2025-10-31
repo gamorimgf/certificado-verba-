@@ -1,7 +1,8 @@
 // 🏢 CONFIGURAÇÃO ONEDRIVE CORPORATIVO
 const CONFIG = {
     // Cole aqui o link do seu OneDrive
-    ONEDRIVE_URL: https://hermespardini-my.sharepoint.com/:x:/g/personal/gustavo_amorim_grupopardini_com_br/EVXeEk9bOkFBh_Gfa0I2vkoBoyJeOY0Wftsp6jHk7sCLbw?email=gustavo.amorim%40grupofleury.com.br&e=VIP57N,
+    ONEDRIVE_URL:
+        https://hermespardini-my.sharepoint.com/:x:/g/personal/gustavo_amorim_grupopardini_com_br/EVXeEk9bOkFBh_Gfa0I2vkoBIB7Hqcg6kBf6vRqUihhhfg?email=gustavo.amorim%40grupofleury.com.br&e=3nhasj,
     
     // Configurações de cache
     CACHE_DURATION: 5 * 60 * 1000, // 5 minutos
