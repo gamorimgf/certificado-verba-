@@ -1,11 +1,12 @@
 // SISTEMA DE AUTENTICACAO E GESTAO
-// Versao: 4.2 - Sistema Corrigido Completo
+// Versao: 4.3 - Painel Administrativo Completo
 
 // VARIAVEIS GLOBAIS
 let usuarioLogado = null;
 let todosOsDados = [];
 let dadosFiltrados = [];
 let usuarios = [];
+let proximoIdUsuario = 2;
 
 // DADOS INICIAIS - USUARIO ADMIN REAL
 const usuariosIniciais = [
@@ -27,7 +28,7 @@ DIREX,Saúde Ocupacional,Gerência Operacional,Área Exames,Fleury RJ,CC010,Rio 
 // INICIALIZACAO DO SISTEMA
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Sistema de Certificado de Verba iniciado!');
-    console.log('Versao: 4.2 - Sistema Completo Corrigido');
+    console.log('Versao: 4.3 - Painel Administrativo Completo');
     
     // Verifica bibliotecas
     if (typeof Papa === 'undefined' || typeof window.jspdf === 'undefined') {
@@ -78,9 +79,12 @@ function inicializarSistema() {
         const usuariosSalvos = localStorage.getItem('fleury-usuarios');
         if (usuariosSalvos) {
             usuarios = JSON.parse(usuariosSalvos);
+            // Atualiza próximo ID
+            proximoIdUsuario = Math.max(...usuarios.map(u => u.id)) + 1;
             console.log('Usuários carregados do localStorage:', usuarios.length);
         } else {
             usuarios = [...usuariosIniciais];
+            proximoIdUsuario = 2;
             salvarUsuarios();
             console.log('Usuários iniciais criados:', usuarios.length);
         }
@@ -98,6 +102,7 @@ function inicializarSistema() {
         console.error('Erro ao inicializar sistema:', erro);
         // Se houver erro, recria os dados iniciais
         usuarios = [...usuariosIniciais];
+        proximoIdUsuario = 2;
         salvarUsuarios();
     }
 }
@@ -273,6 +278,7 @@ function fazerLogout() {
         localStorage.removeItem('fleury-sessao');
         limparFormLogin();
         fecharPainel();
+        fecharModalUsuario();
         mostrarLogin();
         console.log('Logout realizado');
     }
@@ -435,6 +441,25 @@ function configurarUploadAdmin() {
                 processarArquivoUsuarios(e.target.files[0]);
             }
         };
+        
+        // Drag and drop para usuários
+        uploadAreaUsuarios.ondragover = (e) => {
+            e.preventDefault();
+            uploadAreaUsuarios.style.borderColor = '#27ae60';
+        };
+        
+        uploadAreaUsuarios.ondragleave = (e) => {
+            e.preventDefault();
+            uploadAreaUsuarios.style.borderColor = '#3498db';
+        };
+        
+        uploadAreaUsuarios.ondrop = (e) => {
+            e.preventDefault();
+            uploadAreaUsuarios.style.borderColor = '#3498db';
+            if (e.dataTransfer.files[0]) {
+                processarArquivoUsuarios(e.target.files[0]);
+            }
+        };
     }
 }
 
@@ -477,6 +502,137 @@ function processarArquivoDados(arquivo) {
         mostrarStatusUpload('uploadStatusDados', 'Erro ao ler o arquivo.', 'error');
     };
     reader.readAsText(arquivo, 'UTF-8');
+}
+
+// PROCESSAR ARQUIVO USUARIOS
+function processarArquivoUsuarios(arquivo) {
+    if (!arquivo.name.toLowerCase().endsWith('.csv')) {
+        mostrarStatusUpload('uploadStatusUsuarios', 'Por favor, selecione um arquivo CSV.', 'error');
+        return;
+    }
+    
+    mostrarStatusUpload('uploadStatusUsuarios', 'Processando usuários: ' + arquivo.name, 'info');
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        processarUsuariosCSV(e.target.result, arquivo.name);
+    };
+    reader.onerror = function() {
+        mostrarStatusUpload('uploadStatusUsuarios', 'Erro ao ler o arquivo.', 'error');
+    };
+    reader.readAsText(arquivo, 'UTF-8');
+}
+
+// PROCESSAR USUARIOS CSV
+function processarUsuariosCSV(csvData, nomeArquivo) {
+    try {
+        Papa.parse(csvData, {
+            header: true,
+            skipEmptyLines: true,
+            encoding: 'UTF-8',
+            complete: function(resultado) {
+                if (resultado.errors.length > 0) {
+                    console.warn('Avisos no processamento de usuários:', resultado.errors);
+                }
+                
+                // Filtra dados válidos
+                const usuariosCSV = resultado.data.filter(linha => {
+                    return linha['Matricula'] && 
+                           linha['Matricula'].trim() !== '' &&
+                           linha['Nome'] && 
+                           linha['Nome'].trim() !== '' &&
+                           linha['Senha'] && 
+                           linha['Senha'].trim() !== '' &&
+                           linha['Perfil'] && 
+                           (linha['Perfil'].toLowerCase() === 'admin' || linha['Perfil'].toLowerCase() === 'user');
+                });
+                
+                if (usuariosCSV.length === 0) {
+                    mostrarStatusUpload('uploadStatusUsuarios', 'Nenhum usuário válido encontrado no arquivo.', 'error');
+                    return;
+                }
+                
+                // Processa usuários
+                let adicionados = 0;
+                let atualizados = 0;
+                
+                usuariosCSV.forEach(linhaCSV => {
+                    const matricula = linhaCSV['Matricula'].trim();
+                    const nome = linhaCSV['Nome'].trim();
+                    const senha = linhaCSV['Senha'].trim();
+                    const perfil = linhaCSV['Perfil'].toLowerCase();
+                    
+                    // Verifica se usuário já existe
+                    const usuarioExistente = usuarios.find(u => u.matricula.toLowerCase() === matricula.toLowerCase());
+                    
+                    if (usuarioExistente) {
+                        // Atualiza usuário existente
+                        usuarioExistente.nome = nome;
+                        usuarioExistente.senha = senha;
+                        usuarioExistente.perfil = perfil;
+                        atualizados++;
+                    } else {
+                        // Adiciona novo usuário
+                        usuarios.push({
+                            id: proximoIdUsuario++,
+                            matricula: matricula,
+                            nome: nome,
+                            senha: senha,
+                            perfil: perfil
+                        });
+                        adicionados++;
+                    }
+                });
+                
+                // Salva usuários
+                salvarUsuarios();
+                
+                // Mostra resultado
+                mostrarStatusUpload('uploadStatusUsuarios',
+                    `✅ Arquivo "${nomeArquivo}" processado com sucesso!\n` +
+                    `👥 ${adicionados} usuários adicionados • ${atualizados} usuários atualizados\n` +
+                    `📊 Total de usuários no sistema: ${usuarios.length}`,
+                    'success'
+                );
+                
+                // Atualiza lista
+                atualizarListaUsuarios();
+                
+                console.log('Usuários CSV processados:', adicionados, 'adicionados,', atualizados, 'atualizados');
+                
+            },
+            error: function(erro) {
+                mostrarStatusUpload('uploadStatusUsuarios', 'Erro ao processar CSV de usuários: ' + erro.message, 'error');
+            }
+        });
+    } catch (erro) {
+        mostrarStatusUpload('uploadStatusUsuarios', 'Erro interno no processamento de usuários: ' + erro.message, 'error');
+    }
+}
+
+// BAIXAR TEMPLATE USUARIOS
+function baixarTemplateUsuarios() {
+    const templateCSV = 'Matricula,Nome,Senha,Perfil\n' +
+                       'exemplo123,João Silva,senha123,user\n' +
+                       'admin456,Maria Admin,admin123,admin\n' +
+                       'user789,Pedro Costa,fleury123,user';
+    
+    const blob = new Blob([templateCSV], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'template-usuarios-fleury.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    mostrarStatusUpload('uploadStatusUsuarios', '📥 Template baixado com sucesso!', 'success');
+    
+    setTimeout(() => {
+        const statusDiv = document.getElementById('uploadStatusUsuarios');
+        if (statusDiv) statusDiv.innerHTML = '';
+    }, 3000);
 }
 
 // PROCESSAR DADOS CSV
@@ -885,7 +1041,9 @@ function gerarPDF() {
     }
 }
 
-// GESTAO DE USUARIOS (FUNCOES BASICAS)
+// ========== GESTAO DE USUARIOS ==========
+
+// ATUALIZAR LISTA USUARIOS
 function atualizarListaUsuarios() {
     const listaDiv = document.getElementById('listaUsuarios');
     if (!listaDiv) return;
@@ -897,11 +1055,12 @@ function atualizarListaUsuarios() {
     
     let html = '';
     usuarios.forEach(usuario => {
+        const perfilTexto = usuario.perfil === 'admin' ? '👨‍💼 Administrador' : '👤 Usuário';
         html += `
             <div class="usuario-item">
                 <div class="usuario-info">
                     <strong>${usuario.nome}</strong>
-                    <small>Matrícula: ${usuario.matricula} | Perfil: ${usuario.perfil === 'admin' ? 'Administrador' : 'Usuário'}</small>
+                    <small>Matrícula: ${usuario.matricula} | Perfil: ${perfilTexto}</small>
                 </div>
                 <div class="usuario-actions">
                     <button onclick="editarUsuario(${usuario.id})" class="btn btn-info">✏️ Editar</button>
@@ -912,35 +1071,13 @@ function atualizarListaUsuarios() {
     });
     
     listaDiv.innerHTML = html;
+    console.log('Lista de usuários atualizada:', usuarios.length, 'usuários');
 }
 
+// ADICIONAR USUARIO
 function adicionarUsuario() {
-    // Implementar modal de adicionar usuário
-    alert('Funcionalidade em desenvolvimento');
-}
-
-function editarUsuario(id) {
-    // Implementar edição de usuário
-    alert('Funcionalidade em desenvolvimento');
-}
-
-function excluirUsuario(id) {
-    if (confirm('Deseja realmente excluir este usuário?')) {
-        usuarios = usuarios.filter(u => u.id !== id);
-        salvarUsuarios();
-        atualizarListaUsuarios();
-    }
-}
-
-function processarArquivoUsuarios(arquivo) {
-    // Implementar upload de usuários CSV
-    alert('Funcionalidade em desenvolvimento');
-}
-
-function baixarTemplateUsuarios() {
-    // Implementar download de template
-    alert('Funcionalidade em desenvolvimento');
-}
-
-// LOG DE INICIALIZACAO
-console.log('Script carregado completamente!');
+    // Limpa o formulário
+    document.getElementById('usuarioId').value = '';
+    document.getElementById('usuarioMatricula').value = '';
+    document.getElementById('usuarioNome').value = '';
+    document.getElementById('usuarioSenha').
