@@ -1,29 +1,19 @@
 // CONFIGURACAO GOOGLE DRIVE
 const CONFIG = {
-    // Cole aqui o ID do seu arquivo do Google Drive
-    GOOGLE_DRIVE_FILE_ID: 'https://docs.google.com/spreadsheets/d/1guD3BKKJ5VRy3rA9lVprb5HKgjqkk99Yt-OPn9MjkVY/edit?usp=sharing',
-    
-    // URL base do Google Drive para download direto
+    GOOGLE_DRIVE_FILE_ID: '1guD3BKKJ5VRy3rA9lVprb5HKgjqkk99Yt-OPn9MjkVY',
     GOOGLE_DRIVE_BASE_URL: 'https://docs.google.com/spreadsheets/d/1guD3BKKJ5VRy3rA9lVprb5HKgjqkk99Yt-OPn9MjkVY/edit?usp=sharing',
-    
-    // Configuracoes de cache
-    CACHE_DURATION: 5 * 60 * 1000, // 5 minutos
-    
-    // Configuracoes de retry
+    CACHE_DURATION: 5 * 60 * 1000,
     MAX_RETRIES: 3,
-    RETRY_DELAY: 2000 // 2 segundos
+    RETRY_DELAY: 2000
 };
 
-// VARIAVEIS GLOBAIS
 let todosOsDados = [];
 let dadosFiltrados = [];
 
-// FUNCAO PRINCIPAL - CARREGA QUANDO A PAGINA ABRE
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Aplicacao iniciada!');
     console.log('Versao: 2.0 - Google Drive Integration');
     
-    // Verifica se as bibliotecas foram carregadas
     if (typeof Papa === 'undefined') {
         console.error('PapaParse nao foi carregado!');
         mostrarErro('Erro: Biblioteca PapaParse nao encontrada. Recarregue a pagina.');
@@ -37,61 +27,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     console.log('Todas as bibliotecas carregadas com sucesso!');
-    
-    // Configura os eventos dos checkboxes
     configurarEventos();
-    
-    // Tenta carregar os dados
     carregarDados();
 });
 
-// CONFIGURA OS EVENTOS DOS FILTROS
 function configurarEventos() {
-    // Evento do checkbox N2
     document.getElementById('usarN2').addEventListener('change', function() {
         const select = document.getElementById('listaN2');
         select.disabled = !this.checked;
         if (!this.checked) {
             select.value = '';
-            console.log('Filtro N2 desabilitado');
-        } else {
-            console.log('Filtro N2 habilitado');
         }
     });
 
-    // Evento do checkbox N3
     document.getElementById('usarN3').addEventListener('change', function() {
         const select = document.getElementById('listaN3');
         select.disabled = !this.checked;
         if (!this.checked) {
             select.value = '';
-            console.log('Filtro N3 desabilitado');
-        } else {
-            console.log('Filtro N3 habilitado');
         }
     });
 
-    // Evento do checkbox Centro de Custo
     document.getElementById('usarCC').addEventListener('change', function() {
         const select = document.getElementById('listaCC');
         select.disabled = !this.checked;
         if (!this.checked) {
             select.value = '';
-            console.log('Filtro Centro de Custo desabilitado');
-        } else {
-            console.log('Filtro Centro de Custo habilitado');
         }
     });
 }
 
-// CARREGA OS DADOS DO GOOGLE DRIVE
 async function carregarDados() {
     console.log('Iniciando carregamento de dados...');
     
     try {
         mostrarLoading();
         
-        // Verifica cache primeiro
         const dadosCache = verificarCache();
         if (dadosCache) {
             console.log('Usando dados do cache');
@@ -99,7 +70,6 @@ async function carregarDados() {
             return;
         }
         
-        // Carrega dados do Google Drive
         const dadosGoogleDrive = await carregarDoGoogleDrive();
         if (dadosGoogleDrive) {
             salvarCache(dadosGoogleDrive);
@@ -107,7 +77,6 @@ async function carregarDados() {
             return;
         }
         
-        // Fallback para dados locais
         console.log('Usando dados locais como fallback');
         await carregarDadosLocais();
         
@@ -117,18 +86,15 @@ async function carregarDados() {
     }
 }
 
-// CARREGA DADOS DO GOOGLE DRIVE
 async function carregarDoGoogleDrive(tentativa = 1) {
     try {
         console.log('Tentativa ' + tentativa + ' de carregar do Google Drive...');
         
-        // Verifica se o ID foi configurado
         if (CONFIG.GOOGLE_DRIVE_FILE_ID === 'SEU_ID_DO_ARQUIVO_AQUI') {
             console.warn('ID do Google Drive nao configurado, usando dados locais');
             throw new Error('ID do Google Drive nao configurado');
         }
         
-        // Monta a URL do Google Drive
         const url = CONFIG.GOOGLE_DRIVE_BASE_URL + CONFIG.GOOGLE_DRIVE_FILE_ID;
         console.log('URL do Google Drive:', url);
         
@@ -146,7 +112,6 @@ async function carregarDoGoogleDrive(tentativa = 1) {
         
         const dadosCSV = await resposta.text();
         
-        // Verifica se nao e uma pagina de erro do Google
         if (dadosCSV.includes('<html>') || dadosCSV.includes('<!DOCTYPE')) {
             throw new Error('Google Drive retornou HTML ao inves de CSV - verifique as permissoes do arquivo');
         }
@@ -173,7 +138,6 @@ async function carregarDoGoogleDrive(tentativa = 1) {
     }
 }
 
-// SISTEMA DE CACHE
 function verificarCache() {
     try {
         const dados = localStorage.getItem('fleury-dados-cache');
@@ -210,7 +174,6 @@ function salvarCache(dados) {
     }
 }
 
-// FALLBACK PARA DADOS LOCAIS
 async function carregarDadosLocais() {
     try {
         const resposta = await fetch('dados.csv');
@@ -224,7 +187,6 @@ async function carregarDadosLocais() {
     }
 }
 
-// MOSTRA LOADING NOS SELECTS
 function mostrarLoading() {
     const selects = ['listaN2', 'listaN3', 'listaCC'];
     selects.forEach(id => {
@@ -233,7 +195,6 @@ function mostrarLoading() {
     });
 }
 
-// MOSTRA MENSAGEM DE ERRO
 function mostrarErro(mensagem) {
     const selects = ['listaN2', 'listaN3', 'listaCC'];
     selects.forEach(id => {
@@ -245,7 +206,6 @@ function mostrarErro(mensagem) {
         '<p style="color: red; text-align: center;">Erro: ' + mensagem + '</p>';
 }
 
-// PROCESSA OS DADOS CSV
 function processarDados(textoCSV) {
     try {
         Papa.parse(textoCSV, {
@@ -257,7 +217,6 @@ function processarDados(textoCSV) {
                     console.warn('Avisos no processamento:', resultado.errors);
                 }
                 
-                // Filtra dados validos
                 todosOsDados = resultado.data.filter(linha => {
                     return linha['Centro de custo'] && 
                            linha['Centro de custo'].trim() !== '' &&
@@ -271,11 +230,7 @@ function processarDados(textoCSV) {
                 }
                 
                 console.log('Dados processados:', todosOsDados.length, 'registros validos');
-                
-                // Mostra estatisticas
                 mostrarEstatisticas();
-                
-                // Preenche filtros
                 preencherFiltros();
             },
             error: function(erro) {
@@ -289,12 +244,10 @@ function processarDados(textoCSV) {
     }
 }
 
-// PREENCHE OS FILTROS COM OS DADOS
 function preencherFiltros() {
     console.log('Preenchendo filtros...');
     
     try {
-        // Extrai valores unicos de cada coluna
         const valoresN2 = extrairValoresUnicos('N2');
         const valoresN3 = extrairValoresUnicos('N3');
         const valoresCC = extrairValoresUnicos('Centro de custo');
@@ -304,7 +257,6 @@ function preencherFiltros() {
         console.log('  - N3 (Gerencias):', valoresN3.length);
         console.log('  - Centros de Custo:', valoresCC.length);
         
-        // Preenche cada dropdown
         preencherDropdown('listaN2', valoresN2, 'Selecione uma Diretoria/Marca');
         preencherDropdown('listaN3', valoresN3, 'Selecione uma Gerencia');
         preencherDropdown('listaCC', valoresCC, 'Selecione um Centro de Custo');
@@ -317,25 +269,19 @@ function preencherFiltros() {
     }
 }
 
-// EXTRAI VALORES UNICOS DE UMA COLUNA
 function extrairValoresUnicos(nomeColuna) {
     const valores = todosOsDados
         .map(linha => linha[nomeColuna])
         .filter(valor => valor && valor.trim() !== '')
         .map(valor => valor.trim());
     
-    // Remove duplicatas e ordena
     return [...new Set(valores)].sort();
 }
 
-// PREENCHE UM DROPDOWN ESPECIFICO
 function preencherDropdown(idSelect, valores, textoPlaceholder) {
     const select = document.getElementById(idSelect);
-    
-    // Limpa o select
     select.innerHTML = '<option value="">' + textoPlaceholder + '</option>';
     
-    // Adiciona cada valor
     valores.forEach(valor => {
         const opcao = document.createElement('option');
         opcao.value = valor;
@@ -344,12 +290,10 @@ function preencherDropdown(idSelect, valores, textoPlaceholder) {
     });
 }
 
-// APLICA OS FILTROS SELECIONADOS
 function aplicarFiltros() {
     console.log('Aplicando filtros...');
     
     try {
-        // Verifica se pelo menos um filtro esta ativo
         const filtroN2Ativo = document.getElementById('usarN2').checked;
         const filtroN3Ativo = document.getElementById('usarN3').checked;
         const filtroCCAtivo = document.getElementById('usarCC').checked;
@@ -359,11 +303,9 @@ function aplicarFiltros() {
             return;
         }
         
-        // Aplica os filtros
         dadosFiltrados = todosOsDados.filter(linha => {
             let incluir = true;
             
-            // Filtro N2
             if (filtroN2Ativo) {
                 const valorSelecionado = document.getElementById('listaN2').value;
                 if (valorSelecionado && linha['N2'] !== valorSelecionado) {
@@ -371,7 +313,6 @@ function aplicarFiltros() {
                 }
             }
             
-            // Filtro N3
             if (filtroN3Ativo) {
                 const valorSelecionado = document.getElementById('listaN3').value;
                 if (valorSelecionado && linha['N3'] !== valorSelecionado) {
@@ -379,7 +320,6 @@ function aplicarFiltros() {
                 }
             }
             
-            // Filtro Centro de Custo
             if (filtroCCAtivo) {
                 const valorSelecionado = document.getElementById('listaCC').value;
                 if (valorSelecionado && linha['Centro de custo'] !== valorSelecionado) {
@@ -399,7 +339,6 @@ function aplicarFiltros() {
     }
 }
 
-// MOSTRA OS RESULTADOS FILTRADOS
 function mostrarResultados() {
     const containerLista = document.getElementById('listaCentros');
     const elementoTotal = document.getElementById('valorTotal');
@@ -442,7 +381,6 @@ function mostrarResultados() {
     console.log('Total calculado: R$', total.toFixed(2));
 }
 
-// GERA O CERTIFICADO EM PDF
 function gerarPDF() {
     console.log('Iniciando geracao do PDF...');
     
@@ -450,12 +388,9 @@ function gerarPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
-        // Configuracoes
         const margemEsquerda = 20;
-        const larguraPagina = 170;
         let posicaoY = 30;
         
-        // Cabecalho
         doc.setFontSize(22);
         doc.setFont(undefined, 'bold');
         doc.text('CERTIFICADO DE VERBA', 105, posicaoY, { align: 'center' });
@@ -486,13 +421,11 @@ function gerarPDF() {
         posicaoY += 15;
         doc.setFont(undefined, 'normal');
         
-        // Lista de centros
         let total = 0;
         dadosFiltrados.forEach((linha, index) => {
             const valor = parseFloat(linha['Valor']) || 0;
             total += valor;
             
-            // Verifica se precisa de nova pagina
             if (posicaoY > 250) {
                 doc.addPage();
                 posicaoY = 30;
@@ -511,13 +444,11 @@ function gerarPDF() {
             doc.setFontSize(12);
         });
         
-        // Total
         posicaoY += 10;
         doc.setFont(undefined, 'bold');
         doc.setFontSize(16);
         doc.text('VALOR TOTAL AUTORIZADO: R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2}), margemEsquerda, posicaoY);
         
-        // Assinatura
         posicaoY += 40;
         doc.setFontSize(10);
         doc.setFont(undefined, 'normal');
@@ -525,10 +456,8 @@ function gerarPDF() {
         doc.text('Assinatura do Responsavel', margemEsquerda, posicaoY + 10);
         doc.text('Gustavo - Relacoes Trabalhistas', margemEsquerda, posicaoY + 20);
         
-        // Rodape
         doc.text('Documento gerado automaticamente em ' + hoje, margemEsquerda, posicaoY + 35);
         
-        // Salva o arquivo
         const nomeArquivo = 'certificado-verba-' + hoje.replace(/[\/\s:]/g, '-') + '.pdf';
         doc.save(nomeArquivo);
         
@@ -541,17 +470,14 @@ function gerarPDF() {
     }
 }
 
-// LIMPA TODOS OS FILTROS
 function limparTudo() {
     console.log('Limpando todos os filtros...');
     
     try {
-        // Desmarca checkboxes
         document.getElementById('usarN2').checked = false;
         document.getElementById('usarN3').checked = false;
         document.getElementById('usarCC').checked = false;
         
-        // Desabilita e limpa selects
         const selects = ['listaN2', 'listaN3', 'listaCC'];
         selects.forEach(id => {
             const select = document.getElementById(id);
@@ -559,15 +485,12 @@ function limparTudo() {
             select.value = '';
         });
         
-        // Limpa resultados
         document.getElementById('listaCentros').innerHTML = 
             '<p style="text-align: center; color: #6c757d;">Use os filtros acima para selecionar centros</p>';
         document.getElementById('valorTotal').textContent = '0,00';
         document.getElementById('botaoGerar').disabled = true;
         
-        // Limpa dados filtrados
         dadosFiltrados = [];
-        
         console.log('Filtros limpos com sucesso!');
         
     } catch (erro) {
@@ -575,7 +498,6 @@ function limparTudo() {
     }
 }
 
-// MOSTRA ESTATISTICAS DOS DADOS
 function mostrarEstatisticas() {
     if (!todosOsDados || todosOsDados.length === 0) return;
     
@@ -597,16 +519,13 @@ function mostrarEstatisticas() {
     console.log('   Valor Total: R$ ' + stats.valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2}));
 }
 
-// MOSTRA STATUS DA CONEXAO
 function mostrarStatusConexao(conectado, fonte) {
     const header = document.querySelector('.header');
     if (!header) return;
     
-    // Remove status anterior
     const statusAnterior = header.querySelector('.status-conexao');
     if (statusAnterior) statusAnterior.remove();
     
-    // Adiciona novo status
     const statusDiv = document.createElement('div');
     statusDiv.className = 'status-conexao';
     statusDiv.style.cssText = 
