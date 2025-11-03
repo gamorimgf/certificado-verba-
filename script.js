@@ -202,8 +202,10 @@ function mostrarErro(mensagem) {
         select.innerHTML = '<option>Erro ao carregar</option>';
     });
     
-    document.getElementById('listaCentros').innerHTML = 
-        '<p style="color: red; text-align: center;">Erro: ' + mensagem + '</p>';
+    const container = document.getElementById('listaCentros');
+    if (container) {
+        container.innerHTML = '<p style="color: red; text-align: center;">Erro: ' + mensagem + '</p>';
+    }
 }
 
 function processarDados(textoCSV) {
@@ -280,6 +282,8 @@ function extrairValoresUnicos(nomeColuna) {
 
 function preencherDropdown(idSelect, valores, textoPlaceholder) {
     const select = document.getElementById(idSelect);
+    if (!select) return;
+    
     select.innerHTML = '<option value="">' + textoPlaceholder + '</option>';
     
     valores.forEach(valor => {
@@ -343,6 +347,8 @@ function mostrarResultados() {
     const containerLista = document.getElementById('listaCentros');
     const elementoTotal = document.getElementById('valorTotal');
     const botaoGerar = document.getElementById('botaoGerar');
+    
+    if (!containerLista || !elementoTotal || !botaoGerar) return;
     
     if (dadosFiltrados.length === 0) {
         containerLista.innerHTML = '<p style="text-align: center; color: #6c757d;">Nenhum centro encontrado com os filtros selecionados.</p>';
@@ -481,14 +487,25 @@ function limparTudo() {
         const selects = ['listaN2', 'listaN3', 'listaCC'];
         selects.forEach(id => {
             const select = document.getElementById(id);
-            select.disabled = true;
-            select.value = '';
+            if (select) {
+                select.disabled = true;
+                select.value = '';
+            }
         });
         
-        document.getElementById('listaCentros').innerHTML = 
-            '<p style="text-align: center; color: #6c757d;">Use os filtros acima para selecionar centros</p>';
-        document.getElementById('valorTotal').textContent = '0,00';
-        document.getElementById('botaoGerar').disabled = true;
+        const containerLista = document.getElementById('listaCentros');
+        const elementoTotal = document.getElementById('valorTotal');
+        const botaoGerar = document.getElementById('botaoGerar');
+        
+        if (containerLista) {
+            containerLista.innerHTML = '<p style="text-align: center; color: #6c757d;">Use os filtros acima para selecionar centros</p>';
+        }
+        if (elementoTotal) {
+            elementoTotal.textContent = '0,00';
+        }
+        if (botaoGerar) {
+            botaoGerar.disabled = true;
+        }
         
         dadosFiltrados = [];
         console.log('Filtros limpos com sucesso!');
