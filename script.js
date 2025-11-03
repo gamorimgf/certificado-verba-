@@ -8,6 +8,10 @@ let dadosFiltrados = [];
 let usuarios = [];
 let proximoIdUsuario = 2;
 
+let filtrosN2Selecionados = [];
+let filtrosN3Selecionados = [];
+let filtrosCCSelecionados = [];
+
 // DADOS INICIAIS - USUARIO ADMIN REAL
 const usuariosIniciais = [
     { id: 1, matricula: '12282', nome: 'Gustavo - Administrador', senha: 'admin123', perfil: 'admin' }
@@ -315,18 +319,22 @@ function limparFormLogin() {
 }
 
 // CONFIGURAR EVENTOS DO SISTEMA
+
 function configurarEventos() {
-    // Eventos dos checkboxes (só configura uma vez)
+    // Eventos dos checkboxes principais
     const checkbox1 = document.getElementById('usarN2');
     const checkbox2 = document.getElementById('usarN3');
     const checkbox3 = document.getElementById('usarCC');
     
     if (checkbox1 && !checkbox1.hasAttribute('data-configured')) {
         checkbox1.addEventListener('change', function() {
-            const select = document.getElementById('listaN2');
-            if (select) {
-                select.disabled = !this.checked;
-                if (!this.checked) select.value = '';
+            const container = document.getElementById('containerN2');
+            if (container) {
+                container.style.display = this.checked ? 'block' : 'none';
+                if (!this.checked) {
+                    filtrosN2Selecionados = [];
+                    atualizarContador('contadorN2', 0);
+                }
             }
         });
         checkbox1.setAttribute('data-configured', 'true');
@@ -334,10 +342,13 @@ function configurarEventos() {
     
     if (checkbox2 && !checkbox2.hasAttribute('data-configured')) {
         checkbox2.addEventListener('change', function() {
-            const select = document.getElementById('listaN3');
-            if (select) {
-                select.disabled = !this.checked;
-                if (!this.checked) select.value = '';
+            const container = document.getElementById('containerN3');
+            if (container) {
+                container.style.display = this.checked ? 'block' : 'none';
+                if (!this.checked) {
+                    filtrosN3Selecionados = [];
+                    atualizarContador('contadorN3', 0);
+                }
             }
         });
         checkbox2.setAttribute('data-configured', 'true');
@@ -345,16 +356,18 @@ function configurarEventos() {
     
     if (checkbox3 && !checkbox3.hasAttribute('data-configured')) {
         checkbox3.addEventListener('change', function() {
-            const select = document.getElementById('listaCC');
-            if (select) {
-                select.disabled = !this.checked;
-                if (!this.checked) select.value = '';
+            const container = document.getElementById('containerCC');
+            if (container) {
+                container.style.display = this.checked ? 'block' : 'none';
+                if (!this.checked) {
+                    filtrosCCSelecionados = [];
+                    atualizarContador('contadorCC', 0);
+                }
             }
         });
         checkbox3.setAttribute('data-configured', 'true');
     }
 }
-
 // ABRIR PAINEL ADMIN
 function abrirPainel() {
     if (!usuarioLogado || usuarioLogado.perfil !== 'admin') {
@@ -760,18 +773,18 @@ function extrairValoresUnicos(nomeColuna) {
 
 // PREENCHER FILTROS
 function preencherFiltros() {
-    console.log('Preenchendo filtros...');
+    console.log('Preenchendo filtros múltiplos...');
     
     try {
         const valoresN2 = extrairValoresUnicos('N2');
         const valoresN3 = extrairValoresUnicos('N3');
         const valoresCC = extrairValoresUnicos('Centro de custo');
         
-        preencherDropdown('listaN2', valoresN2, 'Selecione uma Diretoria/Marca');
-        preencherDropdown('listaN3', valoresN3, 'Selecione uma Gerência');
-        preencherDropdown('listaCC', valoresCC, 'Selecione um Centro de Custo');
+        preencherFiltroMultiplo('listaN2', valoresN2, 'N2');
+        preencherFiltroMultiplo('listaN3', valoresN3, 'N3');
+        preencherFiltroMultiplo('listaCC', valoresCC, 'CC');
         
-        console.log('Filtros preenchidos com sucesso!');
+        console.log('Filtros múltiplos preenchidos com sucesso!');
         console.log('- N2 (Diretorias):', valoresN2.length);
         console.log('- N3 (Gerências):', valoresN3.length);
         console.log('- Centros de Custo:', valoresCC.length);
@@ -780,6 +793,167 @@ function preencherFiltros() {
         console.error('Erro ao preencher filtros:', erro);
     }
 }
+
+// PREENCHER FILTRO MULTIPLO
+function preencherFiltroMultiplo(idContainer, valores, tipo) {
+    const container = document.getElementById(idContainer);
+    if (!container) return;
+    
+    if (valores.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #6c757d;">Nenhuma opção disponível</p>';
+        return;
+    }
+    
+    let html = '';
+    valores.forEach((valor, index) => {
+        const checkboxId = tipo + '_' + index;
+        html += `
+            <div class="filtro-item" onclick="toggleFiltroItem('${checkboxId}', '${valor}', '${tipo}')">
+                <input type="checkbox" id="${checkboxId}" onchange="handleFiltroChange('${valor}', '${tipo}', this.checked)">
+                <label for="${checkboxId}">${valor}</label>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// TOGGLE FILTRO ITEM
+function toggleFiltroItem(checkboxId, valor, tipo) {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        handleFiltroChange(valor, tipo, checkbox.checked);
+    }
+}
+
+// HANDLE FILTRO CHANGE
+function handleFiltroChange(valor, tipo, checked) {
+    let array;
+    let contadorId;
+    
+    switch(tipo) {
+        case 'N2':
+            array = filtrosN2Selecionados;
+            contadorId = 'contadorN2';
+            break;
+        case 'N3':
+            array = filtrosN3Selecionados;
+            contadorId = 'contadorN3';
+            break;
+        case 'CC':
+            array = filtrosCCSelecionados;
+            contadorId = 'contadorCC';
+            break;
+        default:
+            return;
+    }
+    
+    if (checked) {
+        if (!array.includes(valor)) {
+            array.push(valor);
+        }
+    } else {
+        const index = array.indexOf(valor);
+        if (index > -1) {
+            array.splice(index, 1);
+        }
+    }
+    
+    atualizarContador(contadorId, array.length);
+    atualizarEstiloItem(tipo, valor, checked);
+}
+
+// ATUALIZAR CONTADOR
+function atualizarContador(contadorId, quantidade) {
+    const contador = document.getElementById(contadorId);
+    if (contador) {
+        contador.textContent = quantidade + ' selecionado' + (quantidade !== 1 ? 's' : '');
+    }
+}
+
+// ATUALIZAR ESTILO ITEM
+function atualizarEstiloItem(tipo, valor, selecionado) {
+    const container = document.getElementById('lista' + tipo);
+    if (!container) return;
+    
+    const items = container.querySelectorAll('.filtro-item');
+    items.forEach(item => {
+        const label = item.querySelector('label');
+        if (label && label.textContent === valor) {
+            if (selecionado) {
+                item.classList.add('selecionado');
+            } else {
+                item.classList.remove('selecionado');
+            }
+        }
+    });
+}
+
+// SELECIONAR TODOS N2
+function selecionarTodosN2() {
+    selecionarTodosFiltro('N2', 'listaN2', 'contadorN2');
+}
+
+// SELECIONAR TODOS N3
+function selecionarTodosN3() {
+    selecionarTodosFiltro('N3', 'listaN3', 'contadorN3');
+}
+
+// SELECIONAR TODOS CC
+function selecionarTodosCC() {
+    selecionarTodosFiltro('CC', 'listaCC', 'contadorCC');
+}
+
+// SELECIONAR TODOS FILTRO
+function selecionarTodosFiltro(tipo, containerId, contadorId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        if (!checkbox.checked) {
+            checkbox.checked = true;
+            const label = checkbox.nextElementSibling;
+            if (label) {
+                handleFiltroChange(label.textContent, tipo, true);
+            }
+        }
+    });
+}
+
+// LIMPAR TODOS N2
+function limparTodosN2() {
+    limparTodosFiltro('N2', 'listaN2', 'contadorN2');
+}
+
+// LIMPAR TODOS N3
+function limparTodosN3() {
+    limparTodosFiltro('N3', 'listaN3', 'contadorN3');
+}
+
+// LIMPAR TODOS CC
+function limparTodosCC() {
+    limparTodosFiltro('CC', 'listaCC', 'contadorCC');
+}
+
+// LIMPAR TODOS FILTRO
+function limparTodosFiltro(tipo, containerId, contadorId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            checkbox.checked = false;
+            const label = checkbox.nextElementSibling;
+            if (label) {
+                handleFiltroChange(label.textContent, tipo, false);
+            }
+        }
+    });
+}
+
 
 // PREENCHER DROPDOWN
 function preencherDropdown(idSelect, valores, textoPlaceholder) {
@@ -796,9 +970,9 @@ function preencherDropdown(idSelect, valores, textoPlaceholder) {
     });
 }
 
-// APLICAR FILTROS
+/ APLICAR FILTROS (ATUALIZADA)
 function aplicarFiltros() {
-    console.log('Aplicando filtros...');
+    console.log('Aplicando filtros múltiplos...');
     
     if (todosOsDados.length === 0) {
         alert('Nenhum dado disponível. Entre em contato com o administrador.');
@@ -815,34 +989,46 @@ function aplicarFiltros() {
             return;
         }
         
+        // Verifica se há seleções nos filtros ativos
+        if (filtroN2Ativo && filtrosN2Selecionados.length === 0) {
+            alert('Selecione pelo menos uma Diretoria/Marca!');
+            return;
+        }
+        
+        if (filtroN3Ativo && filtrosN3Selecionados.length === 0) {
+            alert('Selecione pelo menos uma Gerência!');
+            return;
+        }
+        
+        if (filtroCCAtivo && filtrosCCSelecionados.length === 0) {
+            alert('Selecione pelo menos um Centro de Custo!');
+            return;
+        }
+        
         dadosFiltrados = todosOsDados.filter(linha => {
-            let incluir = true;
+            let incluir = false;
             
-            if (filtroN2Ativo) {
-                const valorSelecionado = document.getElementById('listaN2').value;
-                if (valorSelecionado && linha['N2'] !== valorSelecionado) {
-                    incluir = false;
-                }
+            // Lógica OR entre os tipos de filtro
+            if (filtroN2Ativo && filtrosN2Selecionados.includes(linha['N2'])) {
+                incluir = true;
             }
             
-            if (filtroN3Ativo) {
-                const valorSelecionado = document.getElementById('listaN3').value;
-                if (valorSelecionado && linha['N3'] !== valorSelecionado) {
-                    incluir = false;
-                }
+            if (filtroN3Ativo && filtrosN3Selecionados.includes(linha['N3'])) {
+                incluir = true;
             }
             
-            if (filtroCCAtivo) {
-                const valorSelecionado = document.getElementById('listaCC').value;
-                if (valorSelecionado && linha['Centro de custo'] !== valorSelecionado) {
-                    incluir = false;
-                }
+            if (filtroCCAtivo && filtrosCCSelecionados.includes(linha['Centro de custo'])) {
+                incluir = true;
             }
             
             return incluir;
         });
         
         console.log('Filtros aplicados:', dadosFiltrados.length, 'registros encontrados');
+        console.log('- N2 selecionados:', filtrosN2Selecionados);
+        console.log('- N3 selecionados:', filtrosN3Selecionados);
+        console.log('- CC selecionados:', filtrosCCSelecionados);
+        
         mostrarResultados();
         
     } catch (erro) {
@@ -896,25 +1082,30 @@ function mostrarResultados() {
     console.log('Total calculado: R$', total.toFixed(2));
 }
 
-// LIMPAR FILTROS
+// LIMPAR FILTROS (ATUALIZADA)
 function limparFiltros() {
-    console.log('Limpando filtros...');
+    console.log('Limpando filtros múltiplos...');
     
     try {
-        // Desmarca checkboxes
+        // Desmarca checkboxes principais
         document.getElementById('usarN2').checked = false;
         document.getElementById('usarN3').checked = false;
         document.getElementById('usarCC').checked = false;
         
-        // Desabilita e limpa selects
-        const selects = ['listaN2', 'listaN3', 'listaCC'];
-        selects.forEach(id => {
-            const select = document.getElementById(id);
-            if (select) {
-                select.disabled = true;
-                select.value = '';
-            }
-        });
+        // Esconde containers
+        document.getElementById('containerN2').style.display = 'none';
+        document.getElementById('containerN3').style.display = 'none';
+        document.getElementById('containerCC').style.display = 'none';
+        
+        // Limpa arrays de seleção
+        filtrosN2Selecionados = [];
+        filtrosN3Selecionados = [];
+        filtrosCCSelecionados = [];
+        
+        // Atualiza contadores
+        atualizarContador('contadorN2', 0);
+        atualizarContador('contadorN3', 0);
+        atualizarContador('contadorCC', 0);
         
         // Limpa resultados
         const containerLista = document.getElementById('listaCentros');
@@ -932,7 +1123,7 @@ function limparFiltros() {
         }
         
         dadosFiltrados = [];
-        console.log('Filtros limpos com sucesso!');
+        console.log('Filtros múltiplos limpos com sucesso!');
         
     } catch (erro) {
         console.error('Erro ao limpar filtros:', erro);
