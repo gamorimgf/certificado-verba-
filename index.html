@@ -1,131 +1,79 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Certificado de Verba — Grupo Fleury</title>
-
-  <!-- Tipografia e ícones -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Estilos principais -->
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏥 Certificado de Verba - Grupo Fleury</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <div class="brand">
-        <!-- Adicione o arquivo de logo em assets/logo.png -->
-        <img src="assets/logo.png" alt="Logo Grupo Fleury" class="brand-logo" />
-        <div>
-          <h1>Grupo Fleury</h1>
-          <p class="muted">Certificado de Verba</p>
-        </div>
-      </div>
+    <div class="container">
+        <!-- CABEÇALHO BONITO -->
+        <header class="header">
+            <h1>🏥 Certificado de Verba</h1>
+            <p>Sistema Simples para Liberação de Valores</p>
+        </header>
 
-      <nav class="nav">
-        <button class="nav-item active">Dashboard</button>
-        <button class="nav-item">Centros de Custo</button>
-        <button class="nav-item">Relatórios</button>
-        <button class="nav-item">Configurações</button>
-      </nav>
-
-      <div class="sidebar-footer">
-        <div class="manager">
-          <div class="avatar">G</div>
-          <div>
-            <div class="name">Gustavo</div>
-            <div class="muted small">Relações Trabalhistas</div>
-          </div>
-        </div>
-        <small class="muted">Sistema interno • 2024</small>
-      </div>
-    </aside>
-
-    <main class="main">
-      <header class="topbar">
-        <div class="search">
-          <input type="search" placeholder="Pesquisar centros, gerências ou códigos..." aria-label="Pesquisar"/>
-        </div>
-        <div class="top-actions">
-          <!-- Logo reduzida no topbar para reforçar marca em telas maiores -->
-          <img src="assets/logo.png" alt="Logo Grupo Fleury" class="topbar-logo" />
-          <button class="btn ghost">Importar CSV</button>
-          <button class="btn primary">Novo Certificado</button>
-        </div>
-      </header>
-
-      <section class="content">
-        <section class="card filters">
-          <h2>Filtros</h2>
-
-          <div class="row">
-            <label class="checkbox">
-              <input type="checkbox" id="usarN2"/>
-              <span>Filtrar por Diretoria / Marca</span>
-            </label>
-            <select id="listaN2" disabled>
-              <option>Carregando dados...</option>
-            </select>
-          </div>
-
-          <div class="row">
-            <label class="checkbox">
-              <input type="checkbox" id="usarN3"/>
-              <span>Filtrar por Gerência</span>
-            </label>
-            <select id="listaN3" disabled>
-              <option>Carregando dados...</option>
-            </select>
-          </div>
-
-          <div class="row">
-            <label class="checkbox">
-              <input type="checkbox" id="usarCC"/>
-              <span>Filtrar por Centro de Custo</span>
-            </label>
-            <select id="listaCC" disabled>
-              <option>Carregando dados...</option>
-            </select>
-          </div>
-
-          <div class="actions">
-            <button onclick="aplicarFiltros()" class="btn success">Aplicar</button>
-            <button onclick="limparTudo()" class="btn">Limpar</button>
-          </div>
-        </section>
-
-        <section class="card resultados">
-          <div class="result-header">
-            <h2>Centros Selecionados</h2>
-            <div class="total">
-              <span class="muted">Total Disponível</span>
-              <strong>R$ <span id="valorTotal">0,00</span></strong>
+        <!-- ÁREA DOS FILTROS -->
+        <section class="filtros">
+            <h2>🔍 Escolha seus Centros de Custo</h2>
+            
+            <div class="filtro-item">
+                <label>
+                    <input type="checkbox" id="usarN2"> 
+                    📊 Filtrar por Diretoria/Marca
+                </label>
+                <select id="listaN2" disabled>
+                    <option>Carregando...</option>
+                </select>
             </div>
-          </div>
 
-          <div id="listaCentros" class="lista-centros">
-            <p class="muted">Use os filtros para selecionar centros</p>
-          </div>
+            <div class="filtro-item">
+                <label>
+                    <input type="checkbox" id="usarN3"> 
+                    🏢 Filtrar por Gerência
+                </label>
+                <select id="listaN3" disabled>
+                    <option>Carregando...</option>
+                </select>
+            </div>
 
-          <div class="result-actions">
-            <button onclick="gerarPDF()" id="botaoGerar" disabled class="btn primary">Gerar Certificado (PDF)</button>
-            <button class="btn ghost">Exportar CSV</button>
-          </div>
+            <div class="filtro-item">
+                <label>
+                    <input type="checkbox" id="usarCC"> 
+                    💼 Filtrar por Centro de Custo
+                </label>
+                <select id="listaCC" disabled>
+                    <option>Carregando...</option>
+                </select>
+            </div>
+
+            <div class="botoes">
+                <button onclick="aplicarFiltros()" class="botao-verde">✅ Aplicar Filtros</button>
+                <button onclick="limparTudo()" class="botao-cinza">🗑️ Limpar Tudo</button>
+            </div>
         </section>
-      </section>
 
-      <footer class="footer">
-        <small>Desenvolvido para o Grupo Fleury — 2024</small>
-      </footer>
-    </main>
-  </div>
+        <!-- ÁREA DOS RESULTADOS -->
+        <section class="resultados">
+            <h2>📋 Centros Selecionados</h2>
+            <div id="listaCentros">
+                <p>👆 Use os filtros acima para selecionar centros</p>
+            </div>
+            
+            <div class="total">
+                <h3>💰 Total Disponível: R\$ <span id="valorTotal">0,00</span></h3>
+            </div>
 
-  <!-- Bibliotecas -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+            <button onclick="gerarPDF()" id="botaoGerar" disabled class="botao-azul">
+                📄 Gerar Certificado PDF
+            </button>
+        </section>
+    </div>
 
-  <!-- Script da aplicação (mantido) -->
-  <script src="script.js"></script>
+    <!-- BIBLIOTECAS MÁGICAS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Papa/5.3.0/papaparse.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
