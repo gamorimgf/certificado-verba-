@@ -1,7 +1,7 @@
 // CONFIGURACAO GOOGLE DRIVE
 const CONFIG = {
-    GOOGLE_DRIVE_FILE_ID: '1guD3BKKJ5VRy3rA9lVprb5HKgjqkk99Yt-OPn9MjkVY',
-    GOOGLE_DRIVE_BASE_URL: 'https://docs.google.com/spreadsheets/d/1guD3BKKJ5VRy3rA9lVprb5HKgjqkk99Yt-OPn9MjkVY/edit?usp=sharing',
+    GOOGLE_DRIVE_FILE_ID: '14TSbRQAY4K-Btm1oD1DrAnCRic1jWmRi',
+    GOOGLE_DRIVE_BASE_URL: 'https://drive.google.com/file/d/14TSbRQAY4K-Btm1oD1DrAnCRic1jWmRi/view?usp=sharing',
     CACHE_DURATION: 5 * 60 * 1000,
     MAX_RETRIES: 3,
     RETRY_DELAY: 2000
