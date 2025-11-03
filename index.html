@@ -50,7 +50,7 @@
             </form>
             
             <div class="login-footer">
-                <p>© 2025 Grupo Fleury - Todos os direitos reservados</p>
+                <p>© 2024 Grupo Fleury - Todos os direitos reservados</p>
             </div>
         </div>
     </div>
@@ -83,73 +83,72 @@
 
         <!-- ÁREA PRINCIPAL DO USUÁRIO -->
         <div id="areaUsuario" class="container">
-            
-           <!-- ÁREA DE FILTROS -->
-<div class="filtros-section">
-    <h3>🔍 Filtros de Seleção Múltipla</h3>
-    
-    <div class="filtro-grupo">
-        <div class="checkbox-container">
-            <input type="checkbox" id="usarN2">
-            <label for="usarN2">📊 Filtrar por Diretoria/Marca (N2)</label>
-        </div>
-        <div class="filtro-multiplo" id="containerN2" style="display: none;">
-            <div class="filtro-header">
-                <span class="filtro-contador" id="contadorN2">0 selecionados</span>
-                <div class="filtro-acoes">
-                    <button type="button" onclick="selecionarTodosN2()" class="btn-mini btn-success">✅ Todos</button>
-                    <button type="button" onclick="limparTodosN2()" class="btn-mini btn-warning">❌ Limpar</button>
+            <!-- ÁREA DE FILTROS -->
+            <div class="filtros-section">
+                <h3>🔍 Filtros de Seleção Múltipla</h3>
+                
+                <div class="filtro-grupo">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="usarN2">
+                        <label for="usarN2">📊 Filtrar por Diretoria/Marca (N2)</label>
+                    </div>
+                    <div class="filtro-multiplo" id="containerN2" style="display: none;">
+                        <div class="filtro-header">
+                            <span class="filtro-contador" id="contadorN2">0 selecionados</span>
+                            <div class="filtro-acoes">
+                                <button type="button" onclick="selecionarTodosN2()" class="btn-mini btn-success">✅ Todos</button>
+                                <button type="button" onclick="limparTodosN2()" class="btn-mini btn-warning">❌ Limpar</button>
+                            </div>
+                        </div>
+                        <div class="filtro-lista" id="listaN2">
+                            <p>Carregando opções...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filtro-grupo">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="usarN3">
+                        <label for="usarN3">🏢 Filtrar por Gerência (N3)</label>
+                    </div>
+                    <div class="filtro-multiplo" id="containerN3" style="display: none;">
+                        <div class="filtro-header">
+                            <span class="filtro-contador" id="contadorN3">0 selecionados</span>
+                            <div class="filtro-acoes">
+                                <button type="button" onclick="selecionarTodosN3()" class="btn-mini btn-success">✅ Todos</button>
+                                <button type="button" onclick="limparTodosN3()" class="btn-mini btn-warning">❌ Limpar</button>
+                            </div>
+                        </div>
+                        <div class="filtro-lista" id="listaN3">
+                            <p>Carregando opções...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filtro-grupo">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="usarCC">
+                        <label for="usarCC">💼 Filtrar por Centro de Custo</label>
+                    </div>
+                    <div class="filtro-multiplo" id="containerCC" style="display: none;">
+                        <div class="filtro-header">
+                            <span class="filtro-contador" id="contadorCC">0 selecionados</span>
+                            <div class="filtro-acoes">
+                                <button type="button" onclick="selecionarTodosCC()" class="btn-mini btn-success">✅ Todos</button>
+                                <button type="button" onclick="limparTodosCC()" class="btn-mini btn-warning">❌ Limpar</button>
+                            </div>
+                        </div>
+                        <div class="filtro-lista" id="listaCC">
+                            <p>Carregando opções...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="botoes-acao">
+                    <button onclick="aplicarFiltros()" class="btn btn-success">✅ Aplicar Filtros</button>
+                    <button onclick="limparFiltros()" class="btn btn-warning">🗑️ Limpar Filtros</button>
                 </div>
             </div>
-            <div class="filtro-lista" id="listaN2">
-                <p>Carregando opções...</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="filtro-grupo">
-        <div class="checkbox-container">
-            <input type="checkbox" id="usarN3">
-            <label for="usarN3">🏢 Filtrar por Gerência (N3)</label>
-        </div>
-        <div class="filtro-multiplo" id="containerN3" style="display: none;">
-            <div class="filtro-header">
-                <span class="filtro-contador" id="contadorN3">0 selecionados</span>
-                <div class="filtro-acoes">
-                    <button type="button" onclick="selecionarTodosN3()" class="btn-mini btn-success">✅ Todos</button>
-                    <button type="button" onclick="limparTodosN3()" class="btn-mini btn-warning">❌ Limpar</button>
-                </div>
-            </div>
-            <div class="filtro-lista" id="listaN3">
-                <p>Carregando opções...</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="filtro-grupo">
-        <div class="checkbox-container">
-            <input type="checkbox" id="usarCC">
-            <label for="usarCC">💼 Filtrar por Centro de Custo</label>
-        </div>
-        <div class="filtro-multiplo" id="containerCC" style="display: none;">
-            <div class="filtro-header">
-                <span class="filtro-contador" id="contadorCC">0 selecionados</span>
-                <div class="filtro-acoes">
-                    <button type="button" onclick="selecionarTodosCC()" class="btn-mini btn-success">✅ Todos</button>
-                    <button type="button" onclick="limparTodosCC()" class="btn-mini btn-warning">❌ Limpar</button>
-                </div>
-            </div>
-            <div class="filtro-lista" id="listaCC">
-                <p>Carregando opções...</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="botoes-acao">
-        <button onclick="aplicarFiltros()" class="btn btn-success">✅ Aplicar Filtros</button>
-        <button onclick="limparFiltros()" class="btn btn-warning">🗑️ Limpar Filtros</button>
-    </div>
-</div>
 
             <!-- ÁREA DE RESULTADOS -->
             <div class="resultados-section">
