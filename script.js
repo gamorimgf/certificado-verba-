@@ -50,7 +50,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // CONFIGURAR EVENTOS DO LOGIN
 function configurarEventosLogin() {
-    const formLogin = document.getElementById('formLogin');
     const matriculaInput = document.getElementById('matricula');
     const senhaInput = document.getElementById('senha');
     
@@ -235,7 +234,6 @@ function fazerLogin() {
     }
     
     console.log('Tentativa de login:', matricula);
-    console.log('Usuários disponíveis:', usuarios.map(u => u.matricula));
     
     const usuario = usuarios.find(u => 
         u.matricula.toLowerCase() === matricula.toLowerCase() && 
@@ -589,9 +587,9 @@ function processarUsuariosCSV(csvData, nomeArquivo) {
                 
                 // Mostra resultado
                 mostrarStatusUpload('uploadStatusUsuarios',
-                    `✅ Arquivo "${nomeArquivo}" processado com sucesso!\n` +
-                    `👥 ${adicionados} usuários adicionados • ${atualizados} usuários atualizados\n` +
-                    `📊 Total de usuários no sistema: ${usuarios.length}`,
+                    '✅ Arquivo "' + nomeArquivo + '" processado com sucesso!<br>' +
+                    '👥 ' + adicionados + ' usuários adicionados • ' + atualizados + ' usuários atualizados<br>' +
+                    '📊 Total de usuários no sistema: ' + usuarios.length,
                     'success'
                 );
                 
@@ -672,9 +670,9 @@ function processarDadosCSV(csvData, nomeArquivo, salvar = true) {
                 // Sucesso!
                 const stats = calcularEstatisticas();
                 mostrarStatusUpload('uploadStatusDados',
-                    `✅ Arquivo "${nomeArquivo}" carregado com sucesso!\n` +
-                    `📊 ${stats.total} registros • ${stats.diretorias} diretorias • ${stats.centros} centros de custo\n` +
-                    `💰 Valor total: R$ ${stats.valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`,
+                    '✅ Arquivo "' + nomeArquivo + '" carregado com sucesso!<br>' +
+                    '📊 ' + stats.total + ' registros • ' + stats.diretorias + ' diretorias • ' + stats.centros + ' centros de custo<br>' +
+                    '💰 Valor total: R$ ' + stats.valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2}),
                     'success'
                 );
                 
@@ -698,7 +696,7 @@ function mostrarStatusUpload(elementId, mensagem, tipo) {
     const statusDiv = document.getElementById(elementId);
     if (statusDiv) {
         statusDiv.className = 'upload-status status-' + tipo;
-        statusDiv.innerHTML = mensagem.replace(/\n/g, '<br>');
+        statusDiv.innerHTML = mensagem;
     }
     
     console.log('[UPLOAD ' + tipo.toUpperCase() + ']', mensagem);
@@ -1080,4 +1078,10 @@ function adicionarUsuario() {
     document.getElementById('usuarioId').value = '';
     document.getElementById('usuarioMatricula').value = '';
     document.getElementById('usuarioNome').value = '';
-    document.getElementById('usuarioSenha').
+    document.getElementById('usuarioSenha').value = '';
+    document.getElementById('usuarioPerfil').value = '';
+    
+    // Muda o título
+    document.getElementById('modalTitulo').textContent = '➕ Adicionar Usuário';
+    
+    // Mostra o
