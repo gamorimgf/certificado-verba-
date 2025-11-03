@@ -970,7 +970,7 @@ function preencherDropdown(idSelect, valores, textoPlaceholder) {
     });
 }
 
-/ APLICAR FILTROS (ATUALIZADA)
+// APLICAR FILTROS (ATUALIZADA)
 function aplicarFiltros() {
     console.log('Aplicando filtros múltiplos...');
     
