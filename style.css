@@ -1,174 +1,192 @@
-:root{
-  --bg:#f6f8fb;
-  --card:#ffffff;
-  --muted:#6b7280;
-  --accent:#0b6cf0;
-  --success:#14a44d;
-  --glass: rgba(255,255,255,0.6);
-  --shadow: 0 6px 18px rgba(17,24,39,0.06);
-  --radius:12px;
-  --text:#0f172a;
-  --sidebar:#0f172a;
+/* DEIXA TUDO BONITO E ORGANIZADO */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-/* Reset / base */
-*{box-sizing:border-box}
-html,body,#root{height:100%}
-body{
-  margin:0;
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  background: linear-gradient(180deg, #f7f9fc 0%, var(--bg) 100%);
-  color:var(--text);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  font-size:14px;
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
 }
 
-/* App layout */
-.app{
-  display:flex;
-  min-height:100vh;
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    overflow: hidden;
 }
 
-/* Sidebar */
-.sidebar{
-  width:260px;
-  padding:28px 20px;
-  background:linear-gradient(180deg,var(--sidebar) 0%, #0b1220 100%);
-  color:#fff;
-  display:flex;
-  flex-direction:column;
-  gap:24px;
-  box-shadow: 8px 0 24px rgba(2,6,23,0.06);
+/* CABEÇALHO BONITO */
+.header {
+    background: linear-gradient(45deg, #2c3e50, #3498db);
+    color: white;
+    padding: 30px;
+    text-align: center;
 }
 
-.brand{
-  display:flex;
-  gap:14px;
-  align-items:center;
+.header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
 }
 
-/* Logo image in sidebar */
-.brand-logo{
-  width:52px;
-  height:52px;
-  object-fit:contain;
-  border-radius:10px;
-  background:transparent;
-  box-shadow:0 6px 18px rgba(11,108,240,0.12);
+.header p {
+    font-size: 1.2em;
+    opacity: 0.9;
 }
 
-/* Provide a smaller logo in the topbar */
-.topbar-logo{
-  width:40px;
-  height:40px;
-  object-fit:contain;
-  border-radius:8px;
-  display:inline-block;
-  margin-right:8px;
-  box-shadow:0 6px 18px rgba(11,108,240,0.08);
+/* ÁREA DOS FILTROS */
+.filtros {
+    padding: 30px;
+    background: #f8f9fa;
+    border-bottom: 3px solid #e9ecef;
 }
 
-.logo{
-  width:52px;
-  height:52px;
-  background:linear-gradient(135deg,#1f6ef0,#6fb1ff);
-  border-radius:10px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:700;
-  box-shadow:0 6px 18px rgba(11,108,240,0.18);
+.filtros h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.5em;
 }
 
-.brand h1{
-  margin:0;
-  font-size:16px;
-  letter-spacing:0.2px;
-}
-.muted{color:var(--glass); opacity:0.95}
-.small{font-size:12px}
-
-/* Navigation */
-.nav{display:flex;flex-direction:column;gap:8px}
-.nav-item{
-  background:transparent;
-  border:0;
-  color:rgba(255,255,255,0.9);
-  text-align:left;
-  padding:10px 12px;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:600;
-}
-.nav-item:hover{background:rgba(255,255,255,0.04)}
-.nav-item.active{background:rgba(255,255,255,0.06)}
-
-/* Sidebar footer */
-.sidebar-footer{margin-top:auto;display:flex;flex-direction:column;gap:10px}
-.manager{display:flex;gap:10px;align-items:center}
-.avatar{
-  width:44px;height:44px;border-radius:10px;background:#fff;color:var(--sidebar);display:flex;align-items:center;justify-content:center;font-weight:700;
-  box-shadow: 0 6px 18px rgba(2,6,23,0.08);
+.filtro-item {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-/* Main area */
-.main{flex:1;display:flex;flex-direction:column;padding:28px}
-.topbar{display:flex;align-items:center;gap:16px;margin-bottom:18px}
-.search{flex:1}
-.search input{
-  width:100%;
-  padding:12px 14px;
-  border-radius:10px;
-  border:1px solid #e6eef9;
-  background:linear-gradient(180deg,#fff,#fcfdff);
-  box-shadow:var(--shadow);
-  outline:none;
-}
-.top-actions{display:flex;gap:10px}
-
-.btn{
-  padding:10px 14px;border-radius:10px;border:1px solid transparent;background:transparent;cursor:pointer;font-weight:600;
-}
-.btn.ghost{border-color:rgba(15,23,42,0.06);background:rgba(255,255,255,0.04)}
-.btn.primary{background:linear-gradient(90deg,var(--accent),#3aa0ff);color:#fff;box-shadow:0 8px 24px rgba(11,108,240,0.14)}
-.btn.success{background:linear-gradient(90deg,var(--success),#2ec36b);color:#fff}
-
-/* Content layout */
-.content{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start}
-.card{
-  background:var(--card);
-  border-radius:var(--radius);
-  padding:18px;
-  box-shadow:var(--shadow);
+.filtro-item label {
+    display: block;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 1.1em;
 }
 
-/* Filters */
-.filters h2{margin:0 0 12px 0}
-.row{display:flex;gap:12px;align-items:center;margin-bottom:10px}
-.checkbox{display:flex;gap:10px;align-items:center}
-.checkbox input{width:18px;height:18px}
-select{flex:1;padding:10px;border-radius:8px;border:1px solid #e9eef6;background:#fbfdff}
-.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
-
-/* Resultados */
-.resultados .result-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.resultados .total{display:flex;flex-direction:column;align-items:flex-end}
-.lista-centros{min-height:180px;padding:10px;border-radius:8px;border:1px dashed #eef3fb;background:linear-gradient(180deg,#fbfdff,#ffffff)}
-.lista-item{
-  display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;background:linear-gradient(180deg,#ffffff,#fbfdff);margin-bottom:8px;border:1px solid #f0f6ff;
+.filtro-item select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+    background: white;
 }
-.lista-item .info{display:flex;gap:12px;align-items:center}
-.tag{background:#eef6ff;color:var(--accent);padding:6px 8px;border-radius:8px;font-weight:600}
-.result-actions{display:flex;gap:12px;margin-top:12px}
 
-/* Footer */
-.footer{margin-top:20px;padding-top:10px;border-top:1px solid #eef5fb;color:var(--muted);font-size:13px}
+.filtro-item select:disabled {
+    background: #f5f5f5;
+    color: #999;
+}
 
-/* Responsividade */
-@media (max-width:980px){
-  .content{grid-template-columns:1fr;gap:14px}
-  .sidebar{display:none}
-  .main{padding:18px}
-  .top-actions{display:none}
+/* BOTÕES BONITOS */
+.botoes {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.botao-verde, .botao-cinza, .botao-azul {
+    padding: 15px 30px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 25px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.botao-verde {
+    background: linear-gradient(45deg, #27ae60, #2ecc71);
+    color: white;
+}
+
+.botao-verde:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+}
+
+.botao-cinza {
+    background: linear-gradient(45deg, #95a5a6, #bdc3c7);
+    color: white;
+}
+
+.botao-azul {
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    color: white;
+    font-size: 1.2em;
+    padding: 20px 40px;
+}
+
+.botao-azul:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ÁREA DOS RESULTADOS */
+.resultados {
+    padding: 30px;
+}
+
+.resultados h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+#listaCentros {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    min-height: 100px;
+}
+
+#listaCentros ul {
+    list-style: none;
+}
+
+#listaCentros li {
+    padding: 10px;
+    margin: 5px 0;
+    background: white;
+    border-radius: 5px;
+    border-left: 4px solid #3498db;
+}
+
+.total {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(45deg, #f39c12, #e67e22);
+    color: white;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.total h3 {
+    font-size: 1.8em;
+}
+
+/* RESPONSIVO PARA CELULAR */
+@media (max-width: 768px) {
+    .container {
+        margin: 10px;
+        border-radius: 10px;
+    }
+    
+    .header h1 {
+        font-size: 2em;
+    }
+    
+    .botoes {
+        flex-direction: column;
+    }
+    
+    .botao-verde, .botao-cinza, .botao-azul {
+        margin: 5px 0;
+        width: 100%;
+    }
 }
