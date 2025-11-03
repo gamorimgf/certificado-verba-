@@ -1,4 +1,4 @@
-// 🌐 CONFIGURAÇÃO GOOGLE DRIVE
+// CONFIGURACAO GOOGLE DRIVE
 const CONFIG = {
     // Cole aqui o ID do seu arquivo do Google Drive
     GOOGLE_DRIVE_FILE_ID: 'https://docs.google.com/spreadsheets/d/1guD3BKKJ5VRy3rA9lVprb5HKgjqkk99Yt-OPn9MjkVY/edit?usp=sharing',
@@ -6,37 +6,37 @@ const CONFIG = {
     // URL base do Google Drive para download direto
     GOOGLE_DRIVE_BASE_URL: 'https://docs.google.com/spreadsheets/d/1guD3BKKJ5VRy3rA9lVprb5HKgjqkk99Yt-OPn9MjkVY/edit?usp=sharing',
     
-    // Configurações de cache
+    // Configuracoes de cache
     CACHE_DURATION: 5 * 60 * 1000, // 5 minutos
     
-    // Configurações de retry
+    // Configuracoes de retry
     MAX_RETRIES: 3,
     RETRY_DELAY: 2000 // 2 segundos
 };
 
-// �� VARIÁVEIS GLOBAIS
+// VARIAVEIS GLOBAIS
 let todosOsDados = [];
 let dadosFiltrados = [];
 
-// 🚀 FUNÇÃO PRINCIPAL - CARREGA QUANDO A PÁGINA ABRE
+// FUNCAO PRINCIPAL - CARREGA QUANDO A PAGINA ABRE
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎉 Aplicação iniciada!');
-    console.log('📊 Versão: 2.0 - Google Drive Integration');
+    console.log('Aplicacao iniciada!');
+    console.log('Versao: 2.0 - Google Drive Integration');
     
     // Verifica se as bibliotecas foram carregadas
     if (typeof Papa === 'undefined') {
-        console.error('❌ PapaParse não foi carregado!');
-        mostrarErro('Erro: Biblioteca PapaParse não encontrada. Recarregue a página.');
+        console.error('PapaParse nao foi carregado!');
+        mostrarErro('Erro: Biblioteca PapaParse nao encontrada. Recarregue a pagina.');
         return;
     }
     
     if (typeof window.jspdf === 'undefined') {
-        console.error('❌ jsPDF não foi carregado!');
-        mostrarErro('Erro: Biblioteca jsPDF não encontrada. Recarregue a página.');
+        console.error('jsPDF nao foi carregado!');
+        mostrarErro('Erro: Biblioteca jsPDF nao encontrada. Recarregue a pagina.');
         return;
     }
     
-    console.log('✅ Todas as bibliotecas carregadas com sucesso!');
+    console.log('Todas as bibliotecas carregadas com sucesso!');
     
     // Configura os eventos dos checkboxes
     configurarEventos();
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     carregarDados();
 });
 
-// ⚙️ CONFIGURA OS EVENTOS DOS FILTROS
+// CONFIGURA OS EVENTOS DOS FILTROS
 function configurarEventos() {
     // Evento do checkbox N2
     document.getElementById('usarN2').addEventListener('change', function() {
@@ -53,9 +53,9 @@ function configurarEventos() {
         select.disabled = !this.checked;
         if (!this.checked) {
             select.value = '';
-            console.log('🔄 Filtro N2 desabilitado');
+            console.log('Filtro N2 desabilitado');
         } else {
-            console.log('✅ Filtro N2 habilitado');
+            console.log('Filtro N2 habilitado');
         }
     });
 
@@ -65,9 +65,9 @@ function configurarEventos() {
         select.disabled = !this.checked;
         if (!this.checked) {
             select.value = '';
-            console.log('🔄 Filtro N3 desabilitado');
+            console.log('Filtro N3 desabilitado');
         } else {
-            console.log('✅ Filtro N3 habilitado');
+            console.log('Filtro N3 habilitado');
         }
     });
 
@@ -77,16 +77,16 @@ function configurarEventos() {
         select.disabled = !this.checked;
         if (!this.checked) {
             select.value = '';
-            console.log('🔄 Filtro Centro de Custo desabilitado');
+            console.log('Filtro Centro de Custo desabilitado');
         } else {
-            console.log('✅ Filtro Centro de Custo habilitado');
+            console.log('Filtro Centro de Custo habilitado');
         }
     });
 }
 
-// 📂 CARREGA OS DADOS DO GOOGLE DRIVE
+// CARREGA OS DADOS DO GOOGLE DRIVE
 async function carregarDados() {
-    console.log('📥 Iniciando carregamento de dados...');
+    console.log('Iniciando carregamento de dados...');
     
     try {
         mostrarLoading();
@@ -94,7 +94,7 @@ async function carregarDados() {
         // Verifica cache primeiro
         const dadosCache = verificarCache();
         if (dadosCache) {
-            console.log('�� Usando dados do cache');
+            console.log('Usando dados do cache');
             processarDados(dadosCache);
             return;
         }
@@ -108,29 +108,29 @@ async function carregarDados() {
         }
         
         // Fallback para dados locais
-        console.log('⚠️ Usando dados locais como fallback');
+        console.log('Usando dados locais como fallback');
         await carregarDadosLocais();
         
     } catch (erro) {
-        console.error('❌ Erro geral no carregamento:', erro);
-        mostrarErro('Erro ao carregar dados. Verifique sua conexão.');
+        console.error('Erro geral no carregamento:', erro);
+        mostrarErro('Erro ao carregar dados. Verifique sua conexao.');
     }
 }
 
-// 🌐 CARREGA DADOS DO GOOGLE DRIVE
+// CARREGA DADOS DO GOOGLE DRIVE
 async function carregarDoGoogleDrive(tentativa = 1) {
     try {
-        console.log(`🔄 Tentativa ${tentativa} de carregar do Google Drive...`);
+        console.log('Tentativa ' + tentativa + ' de carregar do Google Drive...');
         
         // Verifica se o ID foi configurado
         if (CONFIG.GOOGLE_DRIVE_FILE_ID === 'SEU_ID_DO_ARQUIVO_AQUI') {
-            console.warn('⚠️ ID do Google Drive não configurado, usando dados locais');
-            throw new Error('ID do Google Drive não configurado');
+            console.warn('ID do Google Drive nao configurado, usando dados locais');
+            throw new Error('ID do Google Drive nao configurado');
         }
         
         // Monta a URL do Google Drive
         const url = CONFIG.GOOGLE_DRIVE_BASE_URL + CONFIG.GOOGLE_DRIVE_FILE_ID;
-        console.log('🔗 URL do Google Drive:', url);
+        console.log('URL do Google Drive:', url);
         
         const resposta = await fetch(url, {
             method: 'GET',
@@ -141,29 +141,29 @@ async function carregarDoGoogleDrive(tentativa = 1) {
         });
         
         if (!resposta.ok) {
-            throw new Error(`HTTP ${resposta.status}: ${resposta.statusText}`);
+            throw new Error('HTTP ' + resposta.status + ': ' + resposta.statusText);
         }
         
         const dadosCSV = await resposta.text();
         
-        // Verifica se não é uma página de erro do Google
+        // Verifica se nao e uma pagina de erro do Google
         if (dadosCSV.includes('<html>') || dadosCSV.includes('<!DOCTYPE')) {
-            throw new Error('Google Drive retornou HTML ao invés de CSV - verifique as permissões do arquivo');
+            throw new Error('Google Drive retornou HTML ao inves de CSV - verifique as permissoes do arquivo');
         }
         
         if (!dadosCSV || dadosCSV.trim() === '') {
-            throw new Error('Arquivo CSV vazio ou inválido');
+            throw new Error('Arquivo CSV vazio ou invalido');
         }
         
-        console.log('✅ Dados carregados do Google Drive:', dadosCSV.length, 'caracteres');
+        console.log('Dados carregados do Google Drive:', dadosCSV.length, 'caracteres');
         mostrarStatusConexao(true, 'Google Drive');
         return dadosCSV;
         
     } catch (erro) {
-        console.warn(`⚠️ Erro na tentativa ${tentativa}:`, erro.message);
+        console.warn('Erro na tentativa ' + tentativa + ':', erro.message);
         
         if (tentativa < CONFIG.MAX_RETRIES) {
-            console.log(`🔄 Tentando novamente em ${CONFIG.RETRY_DELAY/1000}s...`);
+            console.log('Tentando novamente em ' + (CONFIG.RETRY_DELAY/1000) + 's...');
             await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY));
             return carregarDoGoogleDrive(tentativa + 1);
         }
@@ -173,7 +173,7 @@ async function carregarDoGoogleDrive(tentativa = 1) {
     }
 }
 
-// 📦 SISTEMA DE CACHE
+// SISTEMA DE CACHE
 function verificarCache() {
     try {
         const dados = localStorage.getItem('fleury-dados-cache');
@@ -185,17 +185,17 @@ function verificarCache() {
         const tempoCache = parseInt(timestamp);
         
         if (agora - tempoCache > CONFIG.CACHE_DURATION) {
-            console.log('⏰ Cache expirado, removendo...');
+            console.log('Cache expirado, removendo...');
             localStorage.removeItem('fleury-dados-cache');
             localStorage.removeItem('fleury-cache-timestamp');
             return null;
         }
         
-        console.log('📦 Cache válido encontrado');
+        console.log('Cache valido encontrado');
         return dados;
         
     } catch (erro) {
-        console.warn('⚠️ Erro ao verificar cache:', erro);
+        console.warn('Erro ao verificar cache:', erro);
         return null;
     }
 }
@@ -204,48 +204,48 @@ function salvarCache(dados) {
     try {
         localStorage.setItem('fleury-dados-cache', dados);
         localStorage.setItem('fleury-cache-timestamp', Date.now().toString());
-        console.log('💾 Dados salvos no cache');
+        console.log('Dados salvos no cache');
     } catch (erro) {
-        console.warn('⚠️ Erro ao salvar cache:', erro);
+        console.warn('Erro ao salvar cache:', erro);
     }
 }
 
-// 🔄 FALLBACK PARA DADOS LOCAIS
+// FALLBACK PARA DADOS LOCAIS
 async function carregarDadosLocais() {
     try {
         const resposta = await fetch('dados.csv');
         const dadosCSV = await resposta.text();
         processarDados(dadosCSV);
-        console.log('📁 Dados locais carregados como fallback');
+        console.log('Dados locais carregados como fallback');
         mostrarStatusConexao(false, 'Dados Locais');
     } catch (erro) {
-        console.error('❌ Erro ao carregar dados locais:', erro);
-        mostrarErro('Não foi possível carregar nenhum dado. Verifique a configuração.');
+        console.error('Erro ao carregar dados locais:', erro);
+        mostrarErro('Nao foi possivel carregar nenhum dado. Verifique a configuracao.');
     }
 }
 
-// ⏳ MOSTRA LOADING NOS SELECTS
+// MOSTRA LOADING NOS SELECTS
 function mostrarLoading() {
     const selects = ['listaN2', 'listaN3', 'listaCC'];
     selects.forEach(id => {
         const select = document.getElementById(id);
-        select.innerHTML = '<option>🔄 Carregando do Google Drive...</option>';
+        select.innerHTML = '<option>Carregando do Google Drive...</option>';
     });
 }
 
-// ❌ MOSTRA MENSAGEM DE ERRO
+// MOSTRA MENSAGEM DE ERRO
 function mostrarErro(mensagem) {
     const selects = ['listaN2', 'listaN3', 'listaCC'];
     selects.forEach(id => {
         const select = document.getElementById(id);
-        select.innerHTML = '<option>❌ Erro ao carregar</option>';
+        select.innerHTML = '<option>Erro ao carregar</option>';
     });
     
     document.getElementById('listaCentros').innerHTML = 
-        `<p style="color: red; text-align: center;">❌ ${mensagem}</p>`;
+        '<p style="color: red; text-align: center;">Erro: ' + mensagem + '</p>';
 }
 
-// 📊 PROCESSA OS DADOS CSV
+// PROCESSA OS DADOS CSV
 function processarDados(textoCSV) {
     try {
         Papa.parse(textoCSV, {
@@ -254,10 +254,10 @@ function processarDados(textoCSV) {
             encoding: 'UTF-8',
             complete: function(resultado) {
                 if (resultado.errors.length > 0) {
-                    console.warn('⚠️ Avisos no processamento:', resultado.errors);
+                    console.warn('Avisos no processamento:', resultado.errors);
                 }
                 
-                // Filtra dados válidos
+                // Filtra dados validos
                 todosOsDados = resultado.data.filter(linha => {
                     return linha['Centro de custo'] && 
                            linha['Centro de custo'].trim() !== '' &&
@@ -266,58 +266,58 @@ function processarDados(textoCSV) {
                 });
                 
                 if (todosOsDados.length === 0) {
-                    mostrarErro('Nenhum dado válido encontrado no arquivo');
+                    mostrarErro('Nenhum dado valido encontrado no arquivo');
                     return;
                 }
                 
-                console.log('✅ Dados processados:', todosOsDados.length, 'registros válidos');
+                console.log('Dados processados:', todosOsDados.length, 'registros validos');
                 
-                // Mostra estatísticas
+                // Mostra estatisticas
                 mostrarEstatisticas();
                 
                 // Preenche filtros
                 preencherFiltros();
             },
             error: function(erro) {
-                console.error('❌ Erro ao processar CSV:', erro);
+                console.error('Erro ao processar CSV:', erro);
                 mostrarErro('Erro ao processar dados: ' + erro.message);
             }
         });
     } catch (erro) {
-        console.error('❌ Erro no processamento:', erro);
+        console.error('Erro no processamento:', erro);
         mostrarErro('Erro interno no processamento dos dados');
     }
 }
 
-// 📋 PREENCHE OS FILTROS COM OS DADOS
+// PREENCHE OS FILTROS COM OS DADOS
 function preencherFiltros() {
-    console.log('📝 Preenchendo filtros...');
+    console.log('Preenchendo filtros...');
     
     try {
-        // Extrai valores únicos de cada coluna
+        // Extrai valores unicos de cada coluna
         const valoresN2 = extrairValoresUnicos('N2');
         const valoresN3 = extrairValoresUnicos('N3');
         const valoresCC = extrairValoresUnicos('Centro de custo');
         
-        console.log('📊 Valores encontrados:');
+        console.log('Valores encontrados:');
         console.log('  - N2 (Diretorias):', valoresN2.length);
-        console.log('  - N3 (Gerências):', valoresN3.length);
+        console.log('  - N3 (Gerencias):', valoresN3.length);
         console.log('  - Centros de Custo:', valoresCC.length);
         
         // Preenche cada dropdown
         preencherDropdown('listaN2', valoresN2, 'Selecione uma Diretoria/Marca');
-        preencherDropdown('listaN3', valoresN3, 'Selecione uma Gerência');
+        preencherDropdown('listaN3', valoresN3, 'Selecione uma Gerencia');
         preencherDropdown('listaCC', valoresCC, 'Selecione um Centro de Custo');
         
-        console.log('✅ Filtros preenchidos com sucesso!');
+        console.log('Filtros preenchidos com sucesso!');
         
     } catch (erro) {
-        console.error('❌ Erro ao preencher filtros:', erro);
+        console.error('Erro ao preencher filtros:', erro);
         mostrarErro('Erro ao processar os dados para os filtros');
     }
 }
 
-// 🔍 EXTRAI VALORES ÚNICOS DE UMA COLUNA
+// EXTRAI VALORES UNICOS DE UMA COLUNA
 function extrairValoresUnicos(nomeColuna) {
     const valores = todosOsDados
         .map(linha => linha[nomeColuna])
@@ -328,12 +328,12 @@ function extrairValoresUnicos(nomeColuna) {
     return [...new Set(valores)].sort();
 }
 
-// 📝 PREENCHE UM DROPDOWN ESPECÍFICO
+// PREENCHE UM DROPDOWN ESPECIFICO
 function preencherDropdown(idSelect, valores, textoPlaceholder) {
     const select = document.getElementById(idSelect);
     
     // Limpa o select
-    select.innerHTML = `<option value="">${textoPlaceholder}</option>`;
+    select.innerHTML = '<option value="">' + textoPlaceholder + '</option>';
     
     // Adiciona cada valor
     valores.forEach(valor => {
@@ -344,18 +344,18 @@ function preencherDropdown(idSelect, valores, textoPlaceholder) {
     });
 }
 
-// 🔍 APLICA OS FILTROS SELECIONADOS
+// APLICA OS FILTROS SELECIONADOS
 function aplicarFiltros() {
-    console.log('🔍 Aplicando filtros...');
+    console.log('Aplicando filtros...');
     
     try {
-        // Verifica se pelo menos um filtro está ativo
+        // Verifica se pelo menos um filtro esta ativo
         const filtroN2Ativo = document.getElementById('usarN2').checked;
         const filtroN3Ativo = document.getElementById('usarN3').checked;
         const filtroCCAtivo = document.getElementById('usarCC').checked;
         
         if (!filtroN2Ativo && !filtroN3Ativo && !filtroCCAtivo) {
-            alert('⚠️ Selecione pelo menos um filtro para continuar!');
+            alert('Selecione pelo menos um filtro para continuar!');
             return;
         }
         
@@ -390,23 +390,23 @@ function aplicarFiltros() {
             return incluir;
         });
         
-        console.log('📊 Filtros aplicados:', dadosFiltrados.length, 'registros encontrados');
+        console.log('Filtros aplicados:', dadosFiltrados.length, 'registros encontrados');
         mostrarResultados();
         
     } catch (erro) {
-        console.error('❌ Erro ao aplicar filtros:', erro);
+        console.error('Erro ao aplicar filtros:', erro);
         alert('Erro ao aplicar filtros. Tente novamente.');
     }
 }
 
-// 📋 MOSTRA OS RESULTADOS FILTRADOS
+// MOSTRA OS RESULTADOS FILTRADOS
 function mostrarResultados() {
     const containerLista = document.getElementById('listaCentros');
     const elementoTotal = document.getElementById('valorTotal');
     const botaoGerar = document.getElementById('botaoGerar');
     
     if (dadosFiltrados.length === 0) {
-        containerLista.innerHTML = '<p style="text-align: center; color: #6c757d;">😕 Nenhum centro encontrado com os filtros selecionados.</p>';
+        containerLista.innerHTML = '<p style="text-align: center; color: #6c757d;">Nenhum centro encontrado com os filtros selecionados.</p>';
         elementoTotal.textContent = '0,00';
         botaoGerar.disabled = true;
         return;
@@ -419,21 +419,19 @@ function mostrarResultados() {
         const valor = parseFloat(linha['Valor']) || 0;
         total += valor;
         
-        html += `
-            <li>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <strong>${linha['Centro de custo']}</strong><br>
-                        <small>📊 ${linha['N2']} → 🏢 ${linha['N3']}</small>
-                    </div>
-                    <div style="text-align: right;">
-                        <strong style="color: #27ae60; font-size: 1.1em;">
-                            R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-                        </strong>
-                    </div>
-                </div>
-            </li>
-        `;
+        html += '<li>';
+        html += '<div style="display: flex; justify-content: space-between; align-items: center;">';
+        html += '<div>';
+        html += '<strong>' + linha['Centro de custo'] + '</strong><br>';
+        html += '<small>' + linha['N2'] + ' → ' + linha['N3'] + '</small>';
+        html += '</div>';
+        html += '<div style="text-align: right;">';
+        html += '<strong style="color: #27ae60; font-size: 1.1em;">';
+        html += 'R$ ' + valor.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+        html += '</strong>';
+        html += '</div>';
+        html += '</div>';
+        html += '</li>';
     });
     
     html += '</ul>';
@@ -441,23 +439,23 @@ function mostrarResultados() {
     elementoTotal.textContent = total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
     botaoGerar.disabled = false;
     
-    console.log('💰 Total calculado: R$', total.toFixed(2));
+    console.log('Total calculado: R$', total.toFixed(2));
 }
 
-// 📄 GERA O CERTIFICADO EM PDF
+// GERA O CERTIFICADO EM PDF
 function gerarPDF() {
-    console.log('📄 Iniciando geração do PDF...');
+    console.log('Iniciando geracao do PDF...');
     
     try {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
-        // Configurações
+        // Configuracoes
         const margemEsquerda = 20;
         const larguraPagina = 170;
         let posicaoY = 30;
         
-        // Cabeçalho
+        // Cabecalho
         doc.setFontSize(22);
         doc.setFont(undefined, 'bold');
         doc.text('CERTIFICADO DE VERBA', 105, posicaoY, { align: 'center' });
@@ -476,10 +474,10 @@ function gerarPDF() {
             hour: '2-digit',
             minute: '2-digit'
         });
-        doc.text(`Data de Emissão: ${hoje}`, margemEsquerda, posicaoY);
+        doc.text('Data de Emissao: ' + hoje, margemEsquerda, posicaoY);
         
         posicaoY += 10;
-        doc.text(`Solicitante: Gustavo - Relações Trabalhistas`, margemEsquerda, posicaoY);
+        doc.text('Solicitante: Gustavo - Relacoes Trabalhistas', margemEsquerda, posicaoY);
         
         posicaoY += 20;
         doc.setFont(undefined, 'bold');
@@ -494,21 +492,21 @@ function gerarPDF() {
             const valor = parseFloat(linha['Valor']) || 0;
             total += valor;
             
-            // Verifica se precisa de nova página
+            // Verifica se precisa de nova pagina
             if (posicaoY > 250) {
                 doc.addPage();
                 posicaoY = 30;
             }
             
-            const texto = `${index + 1}. ${linha['Centro de custo']}`;
-            const valorTexto = `R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            const texto = (index + 1) + '. ' + linha['Centro de custo'];
+            const valorTexto = 'R$ ' + valor.toLocaleString('pt-BR', {minimumFractionDigits: 2});
             
             doc.text(texto, margemEsquerda, posicaoY);
             doc.text(valorTexto, 190, posicaoY, { align: 'right' });
             
             posicaoY += 6;
             doc.setFontSize(10);
-            doc.text(`   ${linha['N2']} → ${linha['N3']}`, margemEsquerda, posicaoY);
+            doc.text('   ' + linha['N2'] + ' → ' + linha['N3'], margemEsquerda, posicaoY);
             posicaoY += 10;
             doc.setFontSize(12);
         });
@@ -517,35 +515,35 @@ function gerarPDF() {
         posicaoY += 10;
         doc.setFont(undefined, 'bold');
         doc.setFontSize(16);
-        doc.text(`VALOR TOTAL AUTORIZADO: R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`, margemEsquerda, posicaoY);
+        doc.text('VALOR TOTAL AUTORIZADO: R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2}), margemEsquerda, posicaoY);
         
         // Assinatura
         posicaoY += 40;
         doc.setFontSize(10);
         doc.setFont(undefined, 'normal');
         doc.text('_________________________________', margemEsquerda, posicaoY);
-        doc.text('Assinatura do Responsável', margemEsquerda, posicaoY + 10);
-        doc.text('Gustavo - Relações Trabalhistas', margemEsquerda, posicaoY + 20);
+        doc.text('Assinatura do Responsavel', margemEsquerda, posicaoY + 10);
+        doc.text('Gustavo - Relacoes Trabalhistas', margemEsquerda, posicaoY + 20);
         
-        // Rodapé
-        doc.text(`Documento gerado automaticamente em ${hoje}`, margemEsquerda, posicaoY + 35);
+        // Rodape
+        doc.text('Documento gerado automaticamente em ' + hoje, margemEsquerda, posicaoY + 35);
         
         // Salva o arquivo
-        const nomeArquivo = `certificado-verba-${hoje.replace(/[\/\s:]/g, '-')}.pdf`;
+        const nomeArquivo = 'certificado-verba-' + hoje.replace(/[\/\s:]/g, '-') + '.pdf';
         doc.save(nomeArquivo);
         
-        console.log('✅ PDF gerado com sucesso:', nomeArquivo);
-        alert('🎉 Certificado gerado com sucesso!\n\nO arquivo foi baixado para sua pasta de Downloads.');
+        console.log('PDF gerado com sucesso:', nomeArquivo);
+        alert('Certificado gerado com sucesso! O arquivo foi baixado para sua pasta de Downloads.');
         
     } catch (erro) {
-        console.error('❌ Erro ao gerar PDF:', erro);
+        console.error('Erro ao gerar PDF:', erro);
         alert('Erro ao gerar o PDF. Tente usar o navegador Chrome ou Edge.');
     }
 }
 
-// 🗑️ LIMPA TODOS OS FILTROS
+// LIMPA TODOS OS FILTROS
 function limparTudo() {
-    console.log('🗑️ Limpando todos os filtros...');
+    console.log('Limpando todos os filtros...');
     
     try {
         // Desmarca checkboxes
@@ -563,21 +561,21 @@ function limparTudo() {
         
         // Limpa resultados
         document.getElementById('listaCentros').innerHTML = 
-            '<p style="text-align: center; color: #6c757d;">👆 Use os filtros acima para selecionar centros</p>';
+            '<p style="text-align: center; color: #6c757d;">Use os filtros acima para selecionar centros</p>';
         document.getElementById('valorTotal').textContent = '0,00';
         document.getElementById('botaoGerar').disabled = true;
         
         // Limpa dados filtrados
         dadosFiltrados = [];
         
-        console.log('✅ Filtros limpos com sucesso!');
+        console.log('Filtros limpos com sucesso!');
         
     } catch (erro) {
-        console.error('❌ Erro ao limpar filtros:', erro);
+        console.error('Erro ao limpar filtros:', erro);
     }
 }
 
-// 📊 MOSTRA ESTATÍSTICAS DOS DADOS
+// MOSTRA ESTATISTICAS DOS DADOS
 function mostrarEstatisticas() {
     if (!todosOsDados || todosOsDados.length === 0) return;
     
@@ -591,15 +589,15 @@ function mostrarEstatisticas() {
         }, 0)
     };
     
-    console.log('📊 ESTATÍSTICAS DOS DADOS:');
-    console.log(`   📁 Total de registros: ${stats.total}`);
-    console.log(`   🏢 Diretorias: ${stats.diretorias}`);
-    console.log(`   👥 Gerências: ${stats.gerencias}`);
-    console.log(`   💼 Centros de Custo: ${stats.centros}`);
-    console.log(`   💰 Valor Total: R$ ${stats.valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`);
+    console.log('ESTATISTICAS DOS DADOS:');
+    console.log('   Total de registros: ' + stats.total);
+    console.log('   Diretorias: ' + stats.diretorias);
+    console.log('   Gerencias: ' + stats.gerencias);
+    console.log('   Centros de Custo: ' + stats.centros);
+    console.log('   Valor Total: R$ ' + stats.valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2}));
 }
 
-// 🟢 MOSTRA STATUS DA CONEXÃO
+// MOSTRA STATUS DA CONEXAO
 function mostrarStatusConexao(conectado, fonte) {
     const header = document.querySelector('.header');
     if (!header) return;
@@ -611,20 +609,13 @@ function mostrarStatusConexao(conectado, fonte) {
     // Adiciona novo status
     const statusDiv = document.createElement('div');
     statusDiv.className = 'status-conexao';
-    statusDiv.style.cssText = `
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        padding: 5px 10px;
-        border-radius: 15px;
-        font-size: 0.8em;
-        font-weight: bold;
-        ${conectado ? 
+    statusDiv.style.cssText = 
+        'position: absolute; top: 10px; right: 20px; padding: 5px 10px; border-radius: 15px; font-size: 0.8em; font-weight: bold;' +
+        (conectado ? 
             'background: rgba(39, 174, 96, 0.2); color: #27ae60; border: 1px solid #27ae60;' : 
             'background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c;'
-        }
-    `;
-    statusDiv.innerHTML = conectado ? `🟢 ${fonte} Conectado` : `🔴 ${fonte}`;
+        );
+    statusDiv.innerHTML = conectado ? fonte + ' Conectado' : fonte;
     
     header.style.position = 'relative';
     header.appendChild(statusDiv);
