@@ -14,7 +14,7 @@ const CONFIG = {
     RETRY_DELAY: 2000 // 2 segundos
 };
 
-// 🎯 VARIÁVEIS GLOBAIS
+// �� VARIÁVEIS GLOBAIS
 let todosOsDados = [];
 let dadosFiltrados = [];
 
@@ -94,7 +94,7 @@ async function carregarDados() {
         // Verifica cache primeiro
         const dadosCache = verificarCache();
         if (dadosCache) {
-            console.log('📦 Usando dados do cache');
+            console.log('�� Usando dados do cache');
             processarDados(dadosCache);
             return;
         }
@@ -346,4 +346,286 @@ function preencherDropdown(idSelect, valores, textoPlaceholder) {
 
 // 🔍 APLICA OS FILTROS SELECIONADOS
 function aplicarFiltros() {
-    console.log('
+    console.log('🔍 Aplicando filtros...');
+    
+    try {
+        // Verifica se pelo menos um filtro está ativo
+        const filtroN2Ativo = document.getElementById('usarN2').checked;
+        const filtroN3Ativo = document.getElementById('usarN3').checked;
+        const filtroCCAtivo = document.getElementById('usarCC').checked;
+        
+        if (!filtroN2Ativo && !filtroN3Ativo && !filtroCCAtivo) {
+            alert('⚠️ Selecione pelo menos um filtro para continuar!');
+            return;
+        }
+        
+        // Aplica os filtros
+        dadosFiltrados = todosOsDados.filter(linha => {
+            let incluir = true;
+            
+            // Filtro N2
+            if (filtroN2Ativo) {
+                const valorSelecionado = document.getElementById('listaN2').value;
+                if (valorSelecionado && linha['N2'] !== valorSelecionado) {
+                    incluir = false;
+                }
+            }
+            
+            // Filtro N3
+            if (filtroN3Ativo) {
+                const valorSelecionado = document.getElementById('listaN3').value;
+                if (valorSelecionado && linha['N3'] !== valorSelecionado) {
+                    incluir = false;
+                }
+            }
+            
+            // Filtro Centro de Custo
+            if (filtroCCAtivo) {
+                const valorSelecionado = document.getElementById('listaCC').value;
+                if (valorSelecionado && linha['Centro de custo'] !== valorSelecionado) {
+                    incluir = false;
+                }
+            }
+            
+            return incluir;
+        });
+        
+        console.log('📊 Filtros aplicados:', dadosFiltrados.length, 'registros encontrados');
+        mostrarResultados();
+        
+    } catch (erro) {
+        console.error('❌ Erro ao aplicar filtros:', erro);
+        alert('Erro ao aplicar filtros. Tente novamente.');
+    }
+}
+
+// 📋 MOSTRA OS RESULTADOS FILTRADOS
+function mostrarResultados() {
+    const containerLista = document.getElementById('listaCentros');
+    const elementoTotal = document.getElementById('valorTotal');
+    const botaoGerar = document.getElementById('botaoGerar');
+    
+    if (dadosFiltrados.length === 0) {
+        containerLista.innerHTML = '<p style="text-align: center; color: #6c757d;">😕 Nenhum centro encontrado com os filtros selecionados.</p>';
+        elementoTotal.textContent = '0,00';
+        botaoGerar.disabled = true;
+        return;
+    }
+    
+    let total = 0;
+    let html = '<ul>';
+    
+    dadosFiltrados.forEach((linha, index) => {
+        const valor = parseFloat(linha['Valor']) || 0;
+        total += valor;
+        
+        html += `
+            <li>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>${linha['Centro de custo']}</strong><br>
+                        <small>📊 ${linha['N2']} → 🏢 ${linha['N3']}</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <strong style="color: #27ae60; font-size: 1.1em;">
+                            R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                        </strong>
+                    </div>
+                </div>
+            </li>
+        `;
+    });
+    
+    html += '</ul>';
+    containerLista.innerHTML = html;
+    elementoTotal.textContent = total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+    botaoGerar.disabled = false;
+    
+    console.log('💰 Total calculado: R$', total.toFixed(2));
+}
+
+// 📄 GERA O CERTIFICADO EM PDF
+function gerarPDF() {
+    console.log('📄 Iniciando geração do PDF...');
+    
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Configurações
+        const margemEsquerda = 20;
+        const larguraPagina = 170;
+        let posicaoY = 30;
+        
+        // Cabeçalho
+        doc.setFontSize(22);
+        doc.setFont(undefined, 'bold');
+        doc.text('CERTIFICADO DE VERBA', 105, posicaoY, { align: 'center' });
+        
+        posicaoY += 15;
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'normal');
+        doc.text('Grupo Fleury', 105, posicaoY, { align: 'center' });
+        
+        posicaoY += 20;
+        doc.setFontSize(12);
+        const hoje = new Date().toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        doc.text(`Data de Emissão: ${hoje}`, margemEsquerda, posicaoY);
+        
+        posicaoY += 10;
+        doc.text(`Solicitante: Gustavo - Relações Trabalhistas`, margemEsquerda, posicaoY);
+        
+        posicaoY += 20;
+        doc.setFont(undefined, 'bold');
+        doc.text('CENTROS DE CUSTO AUTORIZADOS:', margemEsquerda, posicaoY);
+        
+        posicaoY += 15;
+        doc.setFont(undefined, 'normal');
+        
+        // Lista de centros
+        let total = 0;
+        dadosFiltrados.forEach((linha, index) => {
+            const valor = parseFloat(linha['Valor']) || 0;
+            total += valor;
+            
+            // Verifica se precisa de nova página
+            if (posicaoY > 250) {
+                doc.addPage();
+                posicaoY = 30;
+            }
+            
+            const texto = `${index + 1}. ${linha['Centro de custo']}`;
+            const valorTexto = `R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            
+            doc.text(texto, margemEsquerda, posicaoY);
+            doc.text(valorTexto, 190, posicaoY, { align: 'right' });
+            
+            posicaoY += 6;
+            doc.setFontSize(10);
+            doc.text(`   ${linha['N2']} → ${linha['N3']}`, margemEsquerda, posicaoY);
+            posicaoY += 10;
+            doc.setFontSize(12);
+        });
+        
+        // Total
+        posicaoY += 10;
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(16);
+        doc.text(`VALOR TOTAL AUTORIZADO: R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`, margemEsquerda, posicaoY);
+        
+        // Assinatura
+        posicaoY += 40;
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text('_________________________________', margemEsquerda, posicaoY);
+        doc.text('Assinatura do Responsável', margemEsquerda, posicaoY + 10);
+        doc.text('Gustavo - Relações Trabalhistas', margemEsquerda, posicaoY + 20);
+        
+        // Rodapé
+        doc.text(`Documento gerado automaticamente em ${hoje}`, margemEsquerda, posicaoY + 35);
+        
+        // Salva o arquivo
+        const nomeArquivo = `certificado-verba-${hoje.replace(/[\/\s:]/g, '-')}.pdf`;
+        doc.save(nomeArquivo);
+        
+        console.log('✅ PDF gerado com sucesso:', nomeArquivo);
+        alert('🎉 Certificado gerado com sucesso!\n\nO arquivo foi baixado para sua pasta de Downloads.');
+        
+    } catch (erro) {
+        console.error('❌ Erro ao gerar PDF:', erro);
+        alert('Erro ao gerar o PDF. Tente usar o navegador Chrome ou Edge.');
+    }
+}
+
+// 🗑️ LIMPA TODOS OS FILTROS
+function limparTudo() {
+    console.log('🗑️ Limpando todos os filtros...');
+    
+    try {
+        // Desmarca checkboxes
+        document.getElementById('usarN2').checked = false;
+        document.getElementById('usarN3').checked = false;
+        document.getElementById('usarCC').checked = false;
+        
+        // Desabilita e limpa selects
+        const selects = ['listaN2', 'listaN3', 'listaCC'];
+        selects.forEach(id => {
+            const select = document.getElementById(id);
+            select.disabled = true;
+            select.value = '';
+        });
+        
+        // Limpa resultados
+        document.getElementById('listaCentros').innerHTML = 
+            '<p style="text-align: center; color: #6c757d;">👆 Use os filtros acima para selecionar centros</p>';
+        document.getElementById('valorTotal').textContent = '0,00';
+        document.getElementById('botaoGerar').disabled = true;
+        
+        // Limpa dados filtrados
+        dadosFiltrados = [];
+        
+        console.log('✅ Filtros limpos com sucesso!');
+        
+    } catch (erro) {
+        console.error('❌ Erro ao limpar filtros:', erro);
+    }
+}
+
+// 📊 MOSTRA ESTATÍSTICAS DOS DADOS
+function mostrarEstatisticas() {
+    if (!todosOsDados || todosOsDados.length === 0) return;
+    
+    const stats = {
+        total: todosOsDados.length,
+        diretorias: extrairValoresUnicos('N2').length,
+        gerencias: extrairValoresUnicos('N3').length,
+        centros: extrairValoresUnicos('Centro de custo').length,
+        valorTotal: todosOsDados.reduce((sum, linha) => {
+            return sum + (parseFloat(linha['Valor']) || 0);
+        }, 0)
+    };
+    
+    console.log('📊 ESTATÍSTICAS DOS DADOS:');
+    console.log(`   📁 Total de registros: ${stats.total}`);
+    console.log(`   🏢 Diretorias: ${stats.diretorias}`);
+    console.log(`   👥 Gerências: ${stats.gerencias}`);
+    console.log(`   💼 Centros de Custo: ${stats.centros}`);
+    console.log(`   💰 Valor Total: R$ ${stats.valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`);
+}
+
+// 🟢 MOSTRA STATUS DA CONEXÃO
+function mostrarStatusConexao(conectado, fonte) {
+    const header = document.querySelector('.header');
+    if (!header) return;
+    
+    // Remove status anterior
+    const statusAnterior = header.querySelector('.status-conexao');
+    if (statusAnterior) statusAnterior.remove();
+    
+    // Adiciona novo status
+    const statusDiv = document.createElement('div');
+    statusDiv.className = 'status-conexao';
+    statusDiv.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8em;
+        font-weight: bold;
+        ${conectado ? 
+            'background: rgba(39, 174, 96, 0.2); color: #27ae60; border: 1px solid #27ae60;' : 
+            'background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c;'
+        }
+    `;
+    statusDiv.innerHTML = conectado ? `🟢 ${fonte} Conectado` : `🔴 ${fonte}`;
+    
+    header.style.position = 'relative';
+    header.appendChild(statusDiv);
+}
