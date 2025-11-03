@@ -1084,4 +1084,184 @@ function adicionarUsuario() {
     // Muda o título
     document.getElementById('modalTitulo').textContent = '➕ Adicionar Usuário';
     
-    // Mostra o
+        // Mostra o modal
+    document.getElementById('modalUsuario').style.display = 'flex';
+    
+    // Foca no campo matrícula
+    setTimeout(() => {
+        document.getElementById('usuarioMatricula').focus();
+    }, 100);
+}
+
+// EDITAR USUARIO
+function editarUsuario(id) {
+    const usuario = usuarios.find(u => u.id === id);
+    if (!usuario) {
+        alert('Usuário não encontrado.');
+        return;
+    }
+    
+    // Preenche o formulário
+    document.getElementById('usuarioId').value = usuario.id;
+    document.getElementById('usuarioMatricula').value = usuario.matricula;
+    document.getElementById('usuarioNome').value = usuario.nome;
+    document.getElementById('usuarioSenha').value = usuario.senha;
+    document.getElementById('usuarioPerfil').value = usuario.perfil;
+    
+    // Muda o título
+    document.getElementById('modalTitulo').textContent = '✏️ Editar Usuário';
+    
+    // Mostra o modal
+    document.getElementById('modalUsuario').style.display = 'flex';
+    
+    // Foca no campo nome
+    setTimeout(() => {
+        document.getElementById('usuarioNome').focus();
+    }, 100);
+}
+
+// SALVAR USUARIO
+function salvarUsuario() {
+    const id = document.getElementById('usuarioId').value;
+    const matricula = document.getElementById('usuarioMatricula').value.trim();
+    const nome = document.getElementById('usuarioNome').value.trim();
+    const senha = document.getElementById('usuarioSenha').value.trim();
+    const perfil = document.getElementById('usuarioPerfil').value;
+    
+    // Validações
+    if (!matricula || !nome || !senha || !perfil) {
+        alert('Por favor, preencha todos os campos.');
+        return;
+    }
+    
+    // Verifica se matrícula já existe (exceto para o próprio usuário em edição)
+    const matriculaExiste = usuarios.find(u => 
+        u.matricula.toLowerCase() === matricula.toLowerCase() && 
+        u.id !== parseInt(id || '0')
+    );
+    
+    if (matriculaExiste) {
+        alert('Já existe um usuário com esta matrícula.');
+        document.getElementById('usuarioMatricula').focus();
+        return;
+    }
+    
+    if (id) {
+        // Editar usuário existente
+        const usuario = usuarios.find(u => u.id === parseInt(id));
+        if (usuario) {
+            usuario.matricula = matricula;
+            usuario.nome = nome;
+            usuario.senha = senha;
+            usuario.perfil = perfil;
+            
+            console.log('Usuário editado:', usuario.nome);
+            alert('✅ Usuário editado com sucesso!');
+        }
+    } else {
+        // Adicionar novo usuário
+        const novoUsuario = {
+            id: proximoIdUsuario++,
+            matricula: matricula,
+            nome: nome,
+            senha: senha,
+            perfil: perfil
+        };
+        
+        usuarios.push(novoUsuario);
+        console.log('Usuário adicionado:', novoUsuario.nome);
+        alert('✅ Usuário adicionado com sucesso!');
+    }
+    
+    // Salva no localStorage
+    salvarUsuarios();
+    
+    // Atualiza a lista
+    atualizarListaUsuarios();
+    
+    // Fecha o modal
+    fecharModalUsuario();
+}
+
+// EXCLUIR USUARIO
+function excluirUsuario(id) {
+    const usuario = usuarios.find(u => u.id === id);
+    if (!usuario) {
+        alert('Usuário não encontrado.');
+        return;
+    }
+    
+    // Não permite excluir o próprio usuário logado
+    if (usuarioLogado && usuarioLogado.id === id) {
+        alert('Você não pode excluir seu próprio usuário.');
+        return;
+    }
+    
+    // Não permite excluir se for o último admin
+    if (usuario.perfil === 'admin') {
+        const admins = usuarios.filter(u => u.perfil === 'admin');
+        if (admins.length === 1) {
+            alert('Não é possível excluir o último administrador do sistema.');
+            return;
+        }
+    }
+    
+    if (confirm('Deseja realmente excluir o usuário "' + usuario.nome + '"?')) {
+        usuarios = usuarios.filter(u => u.id !== id);
+        salvarUsuarios();
+        atualizarListaUsuarios();
+        
+        console.log('Usuário excluído:', usuario.nome);
+        alert('✅ Usuário excluído com sucesso!');
+    }
+}
+
+// FECHAR MODAL USUARIO
+function fecharModalUsuario() {
+    const modal = document.getElementById('modalUsuario');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    // Limpa o formulário
+    document.getElementById('usuarioId').value = '';
+    document.getElementById('usuarioMatricula').value = '';
+    document.getElementById('usuarioNome').value = '';
+    document.getElementById('usuarioSenha').value = '';
+    document.getElementById('usuarioPerfil').value = '';
+}
+
+// CONFIGURAR EVENTOS DO MODAL (chamado quando o modal é aberto)
+function configurarEventosModal() {
+    const form = document.getElementById('formUsuario');
+    const inputs = form.querySelectorAll('input, select');
+    
+    // Enter para navegar entre campos
+    inputs.forEach((input, index) => {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                } else {
+                    salvarUsuario();
+                }
+            }
+        });
+    });
+    
+    // ESC para fechar modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            fecharModalUsuario();
+        }
+    });
+}
+
+// INICIALIZAR EVENTOS DO MODAL (chama uma vez)
+document.addEventListener('DOMContentLoaded', function() {
+    configurarEventosModal();
+});
+
+// LOG DE FINALIZACAO
+console.log('Sistema de gestão de usuários carregado completamente!');
