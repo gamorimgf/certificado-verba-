@@ -7,84 +7,228 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- CABEÇALHO -->
-    <div class="header">
-        <h1>📊 Certificado de Verba</h1>
-        <p>Grupo Fleury - Sistema de Gestão de Centros de Custo</p>
-    </div>
-
-    <!-- ÁREA DE UPLOAD -->
-    <div class="upload-section">
-        <div class="upload-container">
-            <h3>📁 Carregar Dados</h3>
-            <div class="upload-area" id="uploadArea">
-                <div class="upload-content">
-                    <div class="upload-icon">📋</div>
-                    <p><strong>Clique aqui ou arraste seu arquivo CSV</strong></p>
-                    <p class="upload-hint">Arquivo deve conter: N1, N2, N3, N4, N5, Centro de custo, Valor</p>
-                    <input type="file" id="fileInput" accept=".csv" style="display: none;">
-                </div>
+    <!-- TELA DE LOGIN -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>🏥 Grupo Fleury</h1>
+                <h2>Sistema de Certificado de Verba</h2>
             </div>
-            <div class="upload-status" id="uploadStatus"></div>
-            <div class="upload-actions">
-                <button id="btnCarregarArquivo" class="btn btn-primary">📁 Selecionar Arquivo</button>
-                <button id="btnUsarDadosDemo" class="btn btn-secondary">🧪 Usar Dados Demo</button>
+            
+            <div class="login-form">
+                <h3>🔐 Acesso ao Sistema</h3>
+                <form id="formLogin" onsubmit="return false;">
+                    <div class="input-group">
+                        <label for="matricula">📋 Matrícula:</label>
+                        <input type="text" id="matricula" placeholder="Digite sua matrícula" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="senha">🔑 Senha:</label>
+                        <input type="password" id="senha" placeholder="Digite sua senha" required>
+                    </div>
+                    
+                    <button type="button" onclick="fazerLogin()" class="btn btn-primary btn-login">
+                        🚀 Entrar no Sistema
+                    </button>
+                </form>
+                
+                <div id="loginStatus" class="login-status"></div>
+                
+                <div class="login-demo">
+                    <h4>👨‍💼 Usuários Demo:</h4>
+                    <p><strong>Admin:</strong> admin / admin123</p>
+                    <p><strong>Usuário:</strong> gustavo / fleury123</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ÁREA DE FILTROS -->
-    <div class="container" id="filtrosContainer" style="display: none;">
-        <div class="filtros-section">
-            <h3>🔍 Filtros de Seleção</h3>
-            
-            <div class="filtro-grupo">
-                <div class="checkbox-container">
-                    <input type="checkbox" id="usarN2">
-                    <label for="usarN2">📊 Filtrar por Diretoria/Marca (N2)</label>
-                </div>
-                <select id="listaN2" disabled>
-                    <option>Carregue um arquivo primeiro</option>
-                </select>
+    <!-- SISTEMA PRINCIPAL -->
+    <div id="mainSystem" class="main-system" style="display: none;">
+        <!-- CABEÇALHO COM MENU -->
+        <div class="header-system">
+            <div class="header-left">
+                <h1>📊 Certificado de Verba</h1>
+                <span id="userInfo" class="user-info"></span>
             </div>
-
-            <div class="filtro-grupo">
-                <div class="checkbox-container">
-                    <input type="checkbox" id="usarN3">
-                    <label for="usarN3">🏢 Filtrar por Gerência (N3)</label>
-                </div>
-                <select id="listaN3" disabled>
-                    <option>Carregue um arquivo primeiro</option>
-                </select>
-            </div>
-
-            <div class="filtro-grupo">
-                <div class="checkbox-container">
-                    <input type="checkbox" id="usarCC">
-                    <label for="usarCC">💼 Filtrar por Centro de Custo</label>
-                </div>
-                <select id="listaCC" disabled>
-                    <option>Carregue um arquivo primeiro</option>
-                </select>
-            </div>
-
-            <div class="botoes-acao">
-                <button onclick="aplicarFiltros()" class="btn btn-success">✅ Aplicar Filtros</button>
-                <button onclick="limparTudo()" class="btn btn-warning">🗑️ Limpar Filtros</button>
-                <button onclick="voltarUpload()" class="btn btn-info">🔄 Carregar Novo Arquivo</button>
+            <div class="header-right">
+                <button id="btnPainel" onclick="abrirPainel()" class="btn btn-admin" style="display: none;">
+                    ⚙️ Painel Admin
+                </button>
+                <button onclick="fazerLogout()" class="btn btn-secondary">
+                    🚪 Sair
+                </button>
             </div>
         </div>
 
-        <!-- ÁREA DE RESULTADOS -->
-        <div class="resultados-section">
-            <h3>📋 Centros de Custo Selecionados</h3>
-            <div id="listaCentros">
-                <p style="text-align: center; color: #6c757d;">👆 Use os filtros acima para selecionar centros</p>
+        <!-- ÁREA PRINCIPAL DO USUÁRIO -->
+        <div id="areaUsuario" class="container">
+            <!-- ÁREA DE FILTROS -->
+            <div class="filtros-section">
+                <h3>🔍 Filtros de Seleção</h3>
+                
+                <div class="filtro-grupo">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="usarN2">
+                        <label for="usarN2">📊 Filtrar por Diretoria/Marca (N2)</label>
+                    </div>
+                    <select id="listaN2" disabled>
+                        <option>Aguardando dados...</option>
+                    </select>
+                </div>
+
+                <div class="filtro-grupo">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="usarN3">
+                        <label for="usarN3">🏢 Filtrar por Gerência (N3)</label>
+                    </div>
+                    <select id="listaN3" disabled>
+                        <option>Aguardando dados...</option>
+                    </select>
+                </div>
+
+                <div class="filtro-grupo">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="usarCC">
+                        <label for="usarCC">💼 Filtrar por Centro de Custo</label>
+                    </div>
+                    <select id="listaCC" disabled>
+                        <option>Aguardando dados...</option>
+                    </select>
+                </div>
+
+                <div class="botoes-acao">
+                    <button onclick="aplicarFiltros()" class="btn btn-success">✅ Aplicar Filtros</button>
+                    <button onclick="limparFiltros()" class="btn btn-warning">🗑️ Limpar Filtros</button>
+                </div>
             </div>
-            
-            <div class="total-section">
-                <h4>💰 Valor Total: R\$ <span id="valorTotal">0,00</span></h4>
-                <button id="botaoGerar" onclick="gerarPDF()" class="btn btn-primary" disabled>📄 Gerar Certificado PDF</button>
+
+            <!-- ÁREA DE RESULTADOS -->
+            <div class="resultados-section">
+                <h3>📋 Centros de Custo Selecionados</h3>
+                <div id="listaCentros">
+                    <p style="text-align: center; color: #6c757d;">👆 Use os filtros acima para selecionar centros</p>
+                </div>
+                
+                <div class="total-section">
+                    <h4>💰 Valor Total: R\$ <span id="valorTotal">0,00</span></h4>
+                    <button id="botaoGerar" onclick="gerarPDF()" class="btn btn-primary" disabled>📄 Gerar Certificado PDF</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAINEL ADMINISTRATIVO -->
+        <div id="painelAdmin" class="painel-admin" style="display: none;">
+            <div class="painel-container">
+                <div class="painel-header">
+                    <h2>⚙️ Painel Administrativo</h2>
+                    <button onclick="fecharPainel()" class="btn btn-secondary">✖️ Fechar</button>
+                </div>
+                
+                <div class="painel-tabs">
+                    <button onclick="abrirTab('tabDados')" class="tab-btn active" id="btnTabDados">📊 Gestão de Dados</button>
+                    <button onclick="abrirTab('tabUsuarios')" class="tab-btn" id="btnTabUsuarios">👥 Gestão de Usuários</button>
+                </div>
+
+                <!-- TAB GESTÃO DE DADOS -->
+                <div id="tabDados" class="tab-content active">
+                    <h3>📊 Upload de Dados CSV</h3>
+                    
+                    <div class="upload-section-admin">
+                        <div class="upload-area" id="uploadAreaAdmin">
+                            <div class="upload-content">
+                                <div class="upload-icon">📋</div>
+                                <p><strong>Clique aqui ou arraste o arquivo CSV de dados</strong></p>
+                                <p class="upload-hint">Colunas: N1, N2, N3, N4, N5, Centro de custo, Valor</p>
+                                <input type="file" id="fileInputDados" accept=".csv" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="upload-status" id="uploadStatusDados"></div>
+                        <div class="upload-actions">
+                            <button onclick="selecionarArquivoDados()" class="btn btn-primary">📁 Selecionar Arquivo</button>
+                            <button onclick="usarDadosDemo()" class="btn btn-secondary">🧪 Carregar Dados Demo</button>
+                        </div>
+                    </div>
+
+                    <div class="dados-info" id="dadosInfo">
+                        <h4>📈 Estatísticas dos Dados Atuais</h4>
+                        <div id="estatisticasDados">Nenhum dado carregado</div>
+                    </div>
+                </div>
+
+                <!-- TAB GESTÃO DE USUÁRIOS -->
+                <div id="tabUsuarios" class="tab-content">
+                    <h3>👥 Gestão de Usuários</h3>
+                    
+                    <div class="usuarios-upload">
+                        <h4>�� Upload de Usuários CSV</h4>
+                        <div class="upload-area-small" id="uploadAreaUsuarios">
+                            <div class="upload-content">
+                                <div class="upload-icon">👥</div>
+                                <p><strong>Arquivo CSV de usuários</strong></p>
+                                <p class="upload-hint">Colunas: Matricula, Nome, Senha, Perfil</p>
+                                <input type="file" id="fileInputUsuarios" accept=".csv" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="upload-status" id="uploadStatusUsuarios"></div>
+                        <button onclick="selecionarArquivoUsuarios()" class="btn btn-primary">�� Upload Usuários</button>
+                        <button onclick="baixarTemplateUsuarios()" class="btn btn-info">�� Baixar Template</button>
+                    </div>
+
+                    <div class="usuarios-lista">
+                        <h4>📋 Lista de Usuários</h4>
+                        <div class="usuarios-actions">
+                            <button onclick="adicionarUsuario()" class="btn btn-success">➕ Adicionar Usuário</button>
+                            <button onclick="atualizarListaUsuarios()" class="btn btn-info">🔄 Atualizar Lista</button>
+                        </div>
+                        <div id="listaUsuarios" class="usuarios-table"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADICIONAR/EDITAR USUÁRIO -->
+    <div id="modalUsuario" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitulo">➕ Adicionar Usuário</h3>
+                <button onclick="fecharModalUsuario()" class="btn-close">✖️</button>
+            </div>
+            <div class="modal-body">
+                <form id="formUsuario" onsubmit="return false;">
+                    <input type="hidden" id="usuarioId">
+                    
+                    <div class="input-group">
+                        <label for="usuarioMatricula">📋 Matrícula:</label>
+                        <input type="text" id="usuarioMatricula" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="usuarioNome">👤 Nome:</label>
+                        <input type="text" id="usuarioNome" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="usuarioSenha">🔑 Senha:</label>
+                        <input type="password" id="usuarioSenha" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="usuarioPerfil">👥 Perfil:</label>
+                        <select id="usuarioPerfil" required>
+                            <option value="">Selecione o perfil</option>
+                            <option value="admin">👨‍💼 Administrador</option>
+                            <option value="user">👤 Usuário</option>
+                        </select>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" onclick="salvarUsuario()" class="btn btn-success">💾 Salvar</button>
+                        <button type="button" onclick="fecharModalUsuario()" class="btn btn-secondary">❌ Cancelar</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
