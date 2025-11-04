@@ -1,22 +1,19 @@
 // SISTEMA DE AUTENTICACAO E GESTAO
-// Versao: 4.3 - Painel Administrativo Completo
+// Versao: 5.0 - Persistência de Dados via GitHub (Estática)
 
 // VARIAVEIS GLOBAIS
 let usuarioLogado = null;
-let todosOsDados = [];
+let todosOsDados = []; // Dados dos centros de custo
 let dadosFiltrados = [];
-let usuarios = [];
-let proximoIdUsuario = 2;
+let usuarios = []; // Lista de usuários
+let proximoIdUsuario = 2; // Mantido para caso se decida por persistência local temporária, mas será pouco usado.
 
-let filtrosN2Selecionados = [];
-let filtrosN3Selecionados = [];
-let filtrosCCSelecionados = [];
+// URLs DOS ARQUIVOS CSV NO GITHUB
+// ATENÇÃO: SUBSTITUA 'SEU_USUARIO_GITHUB' E 'SEU_REPOSITORIO' PELOS SEUS REAIS
+const GITHUB_DATA_CSV_URL = 'https://raw.githubusercontent.com/gamorimgf/certificado-verba-/refs/heads/main/dados_centros.csv';
+const GITHUB_USERS_CSV_URL = 'https://raw.githubusercontent.com/gamorimgf/certificado-verba-/refs/heads/main/usuarios.csv';
 
-// DADOS INICIAIS - USUARIO ADMIN REAL
-const usuariosIniciais = [
-    { id: 1, matricula: '12282', nome: 'Gustavo - Administrador', senha: 'admin123', perfil: 'admin' }
-];
-
+// DADOS DEMO PARA TESTE LOCAL
 const dadosDemo = `N1,N2,N3,N4,N5,Centro de custo,Regional,Responsável N1,Responsável N2,Responsável N3,Valor
 DIREX,Medicina Diagnóstica,Gerência Operacional,Área Técnica,Fleury SP,CC001,São Paulo,João Silva,Maria Santos,Pedro Costa,2500.00
 DIREX,Medicina Diagnóstica,Gerência Comercial,Área Vendas,Fleury SP,CC002,São Paulo,João Silva,Ana Oliveira,Carlos Lima,1800.00
@@ -29,10 +26,15 @@ DIREX,Medicina Diagnóstica,Gerência Logística,Área Transporte,Fleury MG,CC00
 DIREX,Medicina Diagnóstica,Gerência Financeira,Área Contábil,Fleury SP,CC009,São Paulo,João Silva,Carla Mendes,Thiago Reis,2600.00
 DIREX,Saúde Ocupacional,Gerência Operacional,Área Exames,Fleury RJ,CC010,Rio de Janeiro,José Santos,Renata Lima,Gustavo Almeida,1700.00`;
 
+// FILTROS MULTIPLOS VARIAVEIS
+let filtrosN2Selecionados = [];
+let filtrosN3Selecionados = [];
+let filtrosCCSelecionados = [];
+
 // INICIALIZACAO DO SISTEMA
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Sistema de Certificado de Verba iniciado!');
-    console.log('Versao: 4.3 - Painel Administrativo Completo');
+    console.log('Versao: 5.0 - Persistência de Dados via GitHub (Estática)');
     
     // Verifica bibliotecas
     if (typeof Papa === 'undefined' || typeof window.jspdf === 'undefined') {
@@ -42,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('Bibliotecas carregadas com sucesso!');
     
-    // Inicializa dados
+    // Inicializa dados e usuários do GitHub
     inicializarSistema();
     
     // Verifica se há usuário logado
@@ -50,6 +52,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Configura eventos do formulário de login
     configurarEventosLogin();
+    
+    // Configura eventos do modal de usuário (para as instruções)
+    configurarEventosModal();
 });
 
 // CONFIGURAR EVENTOS DO LOGIN
@@ -76,47 +81,93 @@ function configurarEventosLogin() {
 }
 
 // INICIALIZAR SISTEMA
-function inicializarSistema() {
+async function inicializarSistema() {
     try {
-        // Carrega usuários do localStorage ou usa dados iniciais
-        const usuariosSalvos = localStorage.getItem('fleury-usuarios');
-        if (usuariosSalvos) {
-            usuarios = JSON.parse(usuariosSalvos);
-            // Atualiza próximo ID
-            proximoIdUsuario = Math.max(...usuarios.map(u => u.id)) + 1;
-            console.log('Usuários carregados do localStorage:', usuarios.length);
-        } else {
-            usuarios = [...usuariosIniciais];
-            proximoIdUsuario = 2;
-            salvarUsuarios();
-            console.log('Usuários iniciais criados:', usuarios.length);
-        }
+        // Tenta carregar usuários do GitHub
+        await carregarUsuariosDoGitHub();
         
-        // Carrega dados CSV se existirem
-        const dadosSalvos = localStorage.getItem('fleury-dados-csv');
-        if (dadosSalvos) {
-            processarDadosCSV(dadosSalvos, 'dados-salvos.csv', false);
-            console.log('Dados CSV carregados do localStorage');
+        // Tenta carregar dados dos centros de custo do GitHub
+        await carregarDadosDoGitHub();
+        
+        // Se a carga inicial falhar (ex: arquivos não existem ainda), usa o localStorage como fallback temporário
+        // Para dados de usuário
+        if (usuarios.length === 0) {
+            const usuariosSalvos = localStorage.getItem('fleury-usuarios');
+            if (usuariosSalvos) {
+                usuarios = JSON.parse(usuariosSalvos);
+                proximoIdUsuario = Math.max(...usuarios.map(u => u.id)) + 1;
+                console.log('Usuários carregados do localStorage como fallback:', usuarios.length);
+            } else {
+                // Caso não tenha usuários no GitHub nem no localStorage, cria um admin inicial
+                usuarios = [{ id: 1, matricula: '12282', nome: 'Gustavo - Administrador', senha: 'admin123', perfil: 'admin' }];
+                proximoIdUsuario = 2;
+                salvarUsuarios(); // Salva no localStorage para uso local
+                console.log('Usuários iniciais (fallback) criados:', usuarios.length);
+            }
+        }
+
+        // Para dados dos centros de custo
+        if (todosOsDados.length === 0) {
+            const dadosSalvos = localStorage.getItem('fleury-dados-csv');
+            if (dadosSalvos) {
+                processarDadosCSV(dadosSalvos, 'dados-salvos.csv', false); // processa, mas não salva novamente
+                console.log('Dados CSV carregados do localStorage como fallback');
+            }
         }
         
         console.log('Sistema inicializado com sucesso!');
         
     } catch (erro) {
         console.error('Erro ao inicializar sistema:', erro);
-        // Se houver erro, recria os dados iniciais
-        usuarios = [...usuariosIniciais];
+        // Em caso de erro grave, garante que pelo menos um admin exista no localStorage
+        usuarios = [{ id: 1, matricula: '12282', nome: 'Gustavo - Administrador', senha: 'admin123', perfil: 'admin' }];
         proximoIdUsuario = 2;
         salvarUsuarios();
+        alert('Erro ao carregar dados. Verifique a conexão ou os arquivos no GitHub.');
     }
 }
 
-// SALVAR USUARIOS NO LOCALSTORAGE
+// CARREGA USUARIOS DO GITHUB
+async function carregarUsuariosDoGitHub() {
+    console.log('Tentando carregar usuários do GitHub...');
+    try {
+        const response = await fetch(GITHUB_USERS_CSV_URL);
+        if (!response.ok) {
+            console.warn(`Aviso: Não foi possível carregar usuários do GitHub (${response.status}).`);
+            return; // Não lança erro, tenta fallback para localStorage depois
+        }
+        const csvData = await response.text();
+        await processarUsuariosCSV(csvData, 'usuarios.csv', false); // Não salva no localStorage como "fonte" aqui
+        console.log('Usuários carregados do GitHub:', usuarios.length);
+    } catch (error) {
+        console.warn('Erro ao carregar usuários do GitHub:', error);
+    }
+}
+
+// CARREGA DADOS DO GITHUB
+async function carregarDadosDoGitHub() {
+    console.log('Tentando carregar dados dos centros de custo do GitHub...');
+    try {
+        const response = await fetch(GITHUB_DATA_CSV_URL);
+        if (!response.ok) {
+            console.warn(`Aviso: Não foi possível carregar dados dos centros de custo do GitHub (${response.status}).`);
+            return; // Não lança erro, tenta fallback para localStorage depois
+        }
+        const csvData = await response.text();
+        await processarDadosCSV(csvData, 'dados_centros.csv', false); // processa, mas não salva novamente em localStorage
+        console.log('Dados dos centros de custo carregados do GitHub:', todosOsDados.length);
+    } catch (error) {
+        console.warn('Erro ao carregar dados dos centros de custo do GitHub:', error);
+    }
+}
+
+// SALVAR USUARIOS NO LOCALSTORAGE (mantido para sessões locais, mas não para a fonte centralizada)
 function salvarUsuarios() {
     try {
         localStorage.setItem('fleury-usuarios', JSON.stringify(usuarios));
-        console.log('Usuários salvos no localStorage');
+        console.log('Usuários salvos no localStorage (para sessão local)');
     } catch (erro) {
-        console.error('Erro ao salvar usuários:', erro);
+        console.error('Erro ao salvar usuários no localStorage:', erro);
     }
 }
 
@@ -180,12 +231,13 @@ function mostrarSistema() {
     // Configura eventos se ainda não foram configurados
     configurarEventos();
     
-    // Se for admin e não há dados, abre o painel automaticamente
+    // Se for admin e não há dados, abre o painel automaticamente para instruir o carregamento
     if (usuarioLogado.perfil === 'admin' && todosOsDados.length === 0) {
         setTimeout(() => {
             abrirPainel();
+            abrirTab('tabDados'); // Abre a aba de dados no painel
             mostrarStatusUpload('uploadStatusDados', 
-                'Bem-vindo! Como administrador, você precisa carregar os dados do sistema primeiro.', 
+                'Bem-vindo! Como administrador, você precisa carregar os dados do sistema primeiro, atualizando o arquivo **dados_centros.csv** no GitHub.', 
                 'info');
         }, 1000);
     } else if (todosOsDados.length > 0) {
@@ -203,7 +255,7 @@ function mostrarMensagemSemDados() {
     selects.forEach(id => {
         const select = document.getElementById(id);
         if (select) {
-            select.innerHTML = '<option>Aguardando administrador carregar dados...</option>';
+            select.innerHTML = '<p>Aguardando administrador carregar dados...</p>';
         }
     });
     
@@ -213,7 +265,7 @@ function mostrarMensagemSemDados() {
             '<div style="text-align: center; padding: 2rem; color: #7f8c8d;">' +
             '<h4>📋 Sistema em Configuração</h4>' +
             '<p>O administrador ainda não carregou os dados do sistema.</p>' +
-            '<p>Entre em contato com o administrador para liberar o acesso.</p>' +
+            '<p>Entre em contato com o administrador para liberar o acesso, atualizando o arquivo **dados_centros.csv** no GitHub.</p>' +
             '</div>';
     }
 }
@@ -238,6 +290,7 @@ function fazerLogin() {
     }
     
     console.log('Tentativa de login:', matricula);
+    // console.log('Usuários disponíveis:', usuarios.map(u => ({matricula: u.matricula, perfil: u.perfil}))); // Não exibir senhas
     
     const usuario = usuarios.find(u => 
         u.matricula.toLowerCase() === matricula.toLowerCase() && 
@@ -248,7 +301,7 @@ function fazerLogin() {
         usuarioLogado = usuario;
         console.log('Login bem-sucedido:', usuario.nome);
         
-        // Salva sessão
+        // Salva sessão (apenas o ID do usuário para manter o login)
         try {
             localStorage.setItem('fleury-sessao', JSON.stringify({
                 userId: usuario.id,
@@ -280,7 +333,7 @@ function fazerLogout() {
         localStorage.removeItem('fleury-sessao');
         limparFormLogin();
         fecharPainel();
-        fecharModalUsuario();
+        fecharModalUsuario(); // Garante que o modal de instrução esteja fechado
         mostrarLogin();
         console.log('Logout realizado');
     }
@@ -319,9 +372,8 @@ function limparFormLogin() {
 }
 
 // CONFIGURAR EVENTOS DO SISTEMA
-
 function configurarEventos() {
-    // Eventos dos checkboxes principais
+    // Eventos dos checkboxes (só configura uma vez)
     const checkbox1 = document.getElementById('usarN2');
     const checkbox2 = document.getElementById('usarN3');
     const checkbox3 = document.getElementById('usarCC');
@@ -368,6 +420,7 @@ function configurarEventos() {
         checkbox3.setAttribute('data-configured', 'true');
     }
 }
+
 // ABRIR PAINEL ADMIN
 function abrirPainel() {
     if (!usuarioLogado || usuarioLogado.perfil !== 'admin') {
@@ -378,6 +431,8 @@ function abrirPainel() {
     const painelAdmin = document.getElementById('painelAdmin');
     if (painelAdmin) {
         painelAdmin.style.display = 'flex';
+        // Atualiza estatísticas e lista de usuários
+        // Se os dados e usuários já foram carregados do GitHub, apenas exibe
         atualizarEstatisticasDados();
         atualizarListaUsuarios();
         configurarUploadAdmin();
@@ -407,9 +462,9 @@ function abrirTab(tabId) {
     if (tabElement) tabElement.classList.add('active');
 }
 
-// CONFIGURAR UPLOAD ADMIN
+// CONFIGURAR UPLOAD ADMIN (Para carregar arquivos localmente e PRÉ-VISUALIZAR)
 function configurarUploadAdmin() {
-    // Upload de dados
+    // Upload de dados de Centros de Custo
     const uploadAreaDados = document.getElementById('uploadAreaAdmin');
     const fileInputDados = document.getElementById('fileInputDados');
     
@@ -417,7 +472,7 @@ function configurarUploadAdmin() {
         uploadAreaDados.onclick = () => fileInputDados.click();
         fileInputDados.onchange = (e) => {
             if (e.target.files[0]) {
-                processarArquivoDados(e.target.files[0]);
+                processarArquivoDadosLocal(e.target.files[0]);
             }
         };
         
@@ -436,7 +491,7 @@ function configurarUploadAdmin() {
             e.preventDefault();
             uploadAreaDados.style.borderColor = '#3498db';
             if (e.dataTransfer.files[0]) {
-                processarArquivoDados(e.dataTransfer.files[0]);
+                processarArquivoDadosLocal(e.dataTransfer.files[0]);
             }
         };
     }
@@ -449,7 +504,7 @@ function configurarUploadAdmin() {
         uploadAreaUsuarios.onclick = () => fileInputUsuarios.click();
         fileInputUsuarios.onchange = (e) => {
             if (e.target.files[0]) {
-                processarArquivoUsuarios(e.target.files[0]);
+                processarArquivoUsuariosLocal(e.target.files[0]);
             }
         };
         
@@ -468,13 +523,13 @@ function configurarUploadAdmin() {
             e.preventDefault();
             uploadAreaUsuarios.style.borderColor = '#3498db';
             if (e.dataTransfer.files[0]) {
-                processarArquivoUsuarios(e.target.files[0]);
+                processarArquivoUsuariosLocal(e.dataTransfer.files[0]);
             }
         };
     }
 }
 
-// SELECIONAR ARQUIVO DADOS
+// SELECIONAR ARQUIVO DADOS (Chama o input file para upload local)
 function selecionarArquivoDados() {
     const fileInput = document.getElementById('fileInputDados');
     if (fileInput) {
@@ -482,7 +537,7 @@ function selecionarArquivoDados() {
     }
 }
 
-// SELECIONAR ARQUIVO USUARIOS
+// SELECIONAR ARQUIVO USUARIOS (Chama o input file para upload local)
 function selecionarArquivoUsuarios() {
     const fileInput = document.getElementById('fileInputUsuarios');
     if (fileInput) {
@@ -492,22 +547,23 @@ function selecionarArquivoUsuarios() {
 
 // USAR DADOS DEMO
 function usarDadosDemo() {
-    mostrarStatusUpload('uploadStatusDados', 'Carregando dados de demonstração...', 'info');
-    processarDadosCSV(dadosDemo, 'dados-demo.csv', true);
+    mostrarStatusUpload('uploadStatusDados', 'Carregando dados de demonstração (apenas para visualização local)...', 'info');
+    processarDadosCSV(dadosDemo, 'dados-demo.csv', true); // processa e salva no localStorage para sessão atual
 }
 
-// PROCESSAR ARQUIVO DADOS
-function processarArquivoDados(arquivo) {
+// PROCESSAR ARQUIVO DADOS LOCAL (para pré-visualização)
+function processarArquivoDadosLocal(arquivo) {
     if (!arquivo.name.toLowerCase().endsWith('.csv')) {
         mostrarStatusUpload('uploadStatusDados', 'Por favor, selecione um arquivo CSV.', 'error');
         return;
     }
     
-    mostrarStatusUpload('uploadStatusDados', 'Processando arquivo: ' + arquivo.name, 'info');
+    mostrarStatusUpload('uploadStatusDados', 'Processando arquivo: ' + arquivo.name + ' (pré-visualização local)...', 'info');
     
     const reader = new FileReader();
     reader.onload = function(e) {
-        processarDadosCSV(e.target.result, arquivo.name, true);
+        processarDadosCSV(e.target.result, arquivo.name, true); // processa e salva no localStorage para sessão atual
+        mostrarStatusUpload('uploadStatusDados', '✅ Arquivo "'+arquivo.name+'" carregado para pré-visualização. Para persistir, atualize **dados_centros.csv** no GitHub.', 'success');
     };
     reader.onerror = function() {
         mostrarStatusUpload('uploadStatusDados', 'Erro ao ler o arquivo.', 'error');
@@ -515,18 +571,19 @@ function processarArquivoDados(arquivo) {
     reader.readAsText(arquivo, 'UTF-8');
 }
 
-// PROCESSAR ARQUIVO USUARIOS
-function processarArquivoUsuarios(arquivo) {
+// PROCESSAR ARQUIVO USUARIOS LOCAL (para pré-visualização)
+function processarArquivoUsuariosLocal(arquivo) {
     if (!arquivo.name.toLowerCase().endsWith('.csv')) {
         mostrarStatusUpload('uploadStatusUsuarios', 'Por favor, selecione um arquivo CSV.', 'error');
         return;
     }
     
-    mostrarStatusUpload('uploadStatusUsuarios', 'Processando usuários: ' + arquivo.name, 'info');
+    mostrarStatusUpload('uploadStatusUsuarios', 'Processando usuários: ' + arquivo.name + ' (pré-visualização local)...', 'info');
     
     const reader = new FileReader();
     reader.onload = function(e) {
-        processarUsuariosCSV(e.target.result, arquivo.name);
+        processarUsuariosCSV(e.target.result, arquivo.name, true); // processa e salva no localStorage para sessão atual
+        mostrarStatusUpload('uploadStatusUsuarios', '✅ Arquivo "'+arquivo.name+'" carregado para pré-visualização. Para persistir, atualize **usuarios.csv** no GitHub.', 'success');
     };
     reader.onerror = function() {
         mostrarStatusUpload('uploadStatusUsuarios', 'Erro ao ler o arquivo.', 'error');
@@ -534,90 +591,56 @@ function processarArquivoUsuarios(arquivo) {
     reader.readAsText(arquivo, 'UTF-8');
 }
 
-// PROCESSAR USUARIOS CSV
-function processarUsuariosCSV(csvData, nomeArquivo) {
+// PROCESSAR USUARIOS CSV (AGORA COM OPÇÃO DE SALVAR NO LOCALSTORAGE PARA SESSÃO LOCAL)
+async function processarUsuariosCSV(csvData, nomeArquivo, salvarLocal = false) {
     try {
-        Papa.parse(csvData, {
+        const resultado = Papa.parse(csvData, {
             header: true,
             skipEmptyLines: true,
             encoding: 'UTF-8',
-            complete: function(resultado) {
-                if (resultado.errors.length > 0) {
-                    console.warn('Avisos no processamento de usuários:', resultado.errors);
-                }
-                
-                // Filtra dados válidos
-                const usuariosCSV = resultado.data.filter(linha => {
-                    return linha['Matricula'] && 
-                           linha['Matricula'].trim() !== '' &&
-                           linha['Nome'] && 
-                           linha['Nome'].trim() !== '' &&
-                           linha['Senha'] && 
-                           linha['Senha'].trim() !== '' &&
-                           linha['Perfil'] && 
-                           (linha['Perfil'].toLowerCase() === 'admin' || linha['Perfil'].toLowerCase() === 'user');
-                });
-                
-                if (usuariosCSV.length === 0) {
-                    mostrarStatusUpload('uploadStatusUsuarios', 'Nenhum usuário válido encontrado no arquivo.', 'error');
-                    return;
-                }
-                
-                // Processa usuários
-                let adicionados = 0;
-                let atualizados = 0;
-                
-                usuariosCSV.forEach(linhaCSV => {
-                    const matricula = linhaCSV['Matricula'].trim();
-                    const nome = linhaCSV['Nome'].trim();
-                    const senha = linhaCSV['Senha'].trim();
-                    const perfil = linhaCSV['Perfil'].toLowerCase();
-                    
-                    // Verifica se usuário já existe
-                    const usuarioExistente = usuarios.find(u => u.matricula.toLowerCase() === matricula.toLowerCase());
-                    
-                    if (usuarioExistente) {
-                        // Atualiza usuário existente
-                        usuarioExistente.nome = nome;
-                        usuarioExistente.senha = senha;
-                        usuarioExistente.perfil = perfil;
-                        atualizados++;
-                    } else {
-                        // Adiciona novo usuário
-                        usuarios.push({
-                            id: proximoIdUsuario++,
-                            matricula: matricula,
-                            nome: nome,
-                            senha: senha,
-                            perfil: perfil
-                        });
-                        adicionados++;
-                    }
-                });
-                
-                // Salva usuários
-                salvarUsuarios();
-                
-                // Mostra resultado
-                mostrarStatusUpload('uploadStatusUsuarios',
-                    '✅ Arquivo "' + nomeArquivo + '" processado com sucesso!<br>' +
-                    '👥 ' + adicionados + ' usuários adicionados • ' + atualizados + ' usuários atualizados<br>' +
-                    '📊 Total de usuários no sistema: ' + usuarios.length,
-                    'success'
-                );
-                
-                // Atualiza lista
-                atualizarListaUsuarios();
-                
-                console.log('Usuários CSV processados:', adicionados, 'adicionados,', atualizados, 'atualizados');
-                
-            },
-            error: function(erro) {
-                mostrarStatusUpload('uploadStatusUsuarios', 'Erro ao processar CSV de usuários: ' + erro.message, 'error');
-            }
         });
+
+        if (resultado.errors.length > 0) {
+            console.warn('Avisos no processamento de usuários:', resultado.errors);
+        }
+        
+        const usuariosCSV = resultado.data.filter(linha => {
+            return linha['Matricula'] && linha['Matricula'].trim() !== '' &&
+                   linha['Nome'] && linha['Nome'].trim() !== '' &&
+                   linha['Senha'] && linha['Senha'].trim() !== '' &&
+                   linha['Perfil'] && (linha['Perfil'].toLowerCase() === 'admin' || linha['Perfil'].toLowerCase() === 'user');
+        });
+        
+        if (usuariosCSV.length === 0) {
+            mostrarStatusUpload('uploadStatusUsuarios', 'Nenhum usuário válido encontrado no arquivo.', 'error');
+            return;
+        }
+        
+        // Substitui a lista de usuários global pela carregada
+        usuarios = usuariosCSV.map((u, index) => ({
+            id: index + 1, // IDs sequenciais para os usuários carregados
+            matricula: u.Matricula.trim(),
+            nome: u.Nome.trim(),
+            senha: u.Senha.trim(),
+            perfil: u.Perfil.toLowerCase()
+        }));
+        proximoIdUsuario = usuarios.length + 1; // Atualiza o próximo ID
+        
+        if (salvarLocal) {
+            salvarUsuarios(); // Salva no localStorage para a sessão atual
+            mostrarStatusUpload('uploadStatusUsuarios',
+                '✅ Arquivo "' + nomeArquivo + '" processado com sucesso para pré-visualização.<br>' +
+                '📊 Total de usuários carregados: ' + usuarios.length + '.<br>Lembre-se: Para persistir globalmente, atualize **usuarios.csv** no GitHub.',
+                'success'
+            );
+        }
+
+        atualizarListaUsuarios(); // Atualiza a lista exibida no painel
+        
+        console.log('Usuários CSV processados:', usuarios.length, 'usuários.');
+        
     } catch (erro) {
-        mostrarStatusUpload('uploadStatusUsuarios', 'Erro interno no processamento de usuários: ' + erro.message, 'error');
+        mostrarStatusUpload('uploadStatusUsuarios', 'Erro ao processar CSV de usuários: ' + erro.message, 'error');
     }
 }
 
@@ -638,7 +661,7 @@ function baixarTemplateUsuarios() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     
-    mostrarStatusUpload('uploadStatusUsuarios', '📥 Template baixado com sucesso!', 'success');
+    mostrarStatusUpload('uploadStatusUsuarios', '📥 Template baixado com sucesso!', 'info');
     
     setTimeout(() => {
         const statusDiv = document.getElementById('uploadStatusUsuarios');
@@ -646,59 +669,50 @@ function baixarTemplateUsuarios() {
     }, 3000);
 }
 
-// PROCESSAR DADOS CSV
-function processarDadosCSV(csvData, nomeArquivo, salvar = true) {
+// PROCESSAR DADOS CSV (AGORA COM OPÇÃO DE SALVAR NO LOCALSTORAGE PARA SESSÃO LOCAL)
+async function processarDadosCSV(csvData, nomeArquivo, salvarLocal = false) {
     try {
-        Papa.parse(csvData, {
+        const resultado = Papa.parse(csvData, {
             header: true,
             skipEmptyLines: true,
             encoding: 'UTF-8',
-            complete: function(resultado) {
-                if (resultado.errors.length > 0) {
-                    console.warn('Avisos no processamento:', resultado.errors);
-                }
-                
-                // Filtra dados válidos
-                todosOsDados = resultado.data.filter(linha => {
-                    return linha['Centro de custo'] && 
-                           linha['Centro de custo'].trim() !== '' &&
-                           linha['Valor'] && 
-                           !isNaN(parseFloat(linha['Valor']));
-                });
-                
-                if (todosOsDados.length === 0) {
-                    mostrarStatusUpload('uploadStatusDados', 'Nenhum dado válido encontrado no arquivo.', 'error');
-                    return;
-                }
-                
-                // Salva dados se solicitado
-                if (salvar) {
-                    try {
-                        localStorage.setItem('fleury-dados-csv', csvData);
-                    } catch (erro) {
-                        console.error('Erro ao salvar dados:', erro);
-                    }
-                }
-                
-                // Sucesso!
-                const stats = calcularEstatisticas();
-                mostrarStatusUpload('uploadStatusDados',
-                    '✅ Arquivo "' + nomeArquivo + '" carregado com sucesso!<br>' +
-                    '📊 ' + stats.total + ' registros • ' + stats.diretorias + ' diretorias • ' + stats.centros + ' centros de custo<br>' +
-                    '💰 Valor total: R$ ' + stats.valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2}),
-                    'success'
-                );
-                
-                atualizarEstatisticasDados();
-                preencherFiltros();
-                
-                console.log('Dados CSV processados com sucesso:', todosOsDados.length, 'registros');
-                
-            },
-            error: function(erro) {
-                mostrarStatusUpload('uploadStatusDados', 'Erro ao processar CSV: ' + erro.message, 'error');
-            }
         });
+
+        if (resultado.errors.length > 0) {
+            console.warn('Avisos no processamento:', resultado.errors);
+        }
+        
+        todosOsDados = resultado.data.filter(linha => {
+            return linha['Centro de custo'] && linha['Centro de custo'].trim() !== '' &&
+                   linha['Valor'] && !isNaN(parseFloat(linha['Valor']));
+        });
+        
+        if (todosOsDados.length === 0) {
+            mostrarStatusUpload('uploadStatusDados', 'Nenhum dado válido encontrado no arquivo. Verifique o formato.', 'error');
+            return;
+        }
+        
+        if (salvarLocal) {
+            try {
+                localStorage.setItem('fleury-dados-csv', csvData);
+            } catch (erro) {
+                console.error('Erro ao salvar dados no localStorage:', erro);
+            }
+        }
+        
+        const stats = calcularEstatisticas();
+        mostrarStatusUpload('uploadStatusDados',
+            '✅ Arquivo "' + nomeArquivo + '" carregado para pré-visualização.<br>' +
+            '📊 ' + stats.total + ' registros • ' + stats.diretorias + ' diretorias • ' + stats.centros + ' centros de custo<br>' +
+            '💰 Valor total: R$ ' + stats.valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2}) + '<br>Lembre-se: Para persistir globalmente, atualize **dados_centros.csv** no GitHub.',
+            'success'
+        );
+        
+        atualizarEstatisticasDados();
+        preencherFiltros(); // Preenche os filtros do sistema principal
+        
+        console.log('Dados CSV processados com sucesso:', todosOsDados.length, 'registros');
+        
     } catch (erro) {
         mostrarStatusUpload('uploadStatusDados', 'Erro interno no processamento: ' + erro.message, 'error');
     }
@@ -709,7 +723,7 @@ function mostrarStatusUpload(elementId, mensagem, tipo) {
     const statusDiv = document.getElementById(elementId);
     if (statusDiv) {
         statusDiv.className = 'upload-status status-' + tipo;
-        statusDiv.innerHTML = mensagem;
+        statusDiv.innerHTML = mensagem.replace(/\n/g, '<br>');
     }
     
     console.log('[UPLOAD ' + tipo.toUpperCase() + ']', mensagem);
@@ -807,15 +821,26 @@ function preencherFiltroMultiplo(idContainer, valores, tipo) {
     let html = '';
     valores.forEach((valor, index) => {
         const checkboxId = tipo + '_' + index;
+        // Verifica se o item já estava selecionado antes de recarregar
+        let isChecked = false;
+        if (tipo === 'N2') isChecked = filtrosN2Selecionados.includes(valor);
+        if (tipo === 'N3') isChecked = filtrosN3Selecionados.includes(valor);
+        if (tipo === 'CC') isChecked = filtrosCCSelecionados.includes(valor);
+
         html += `
-            <div class="filtro-item" onclick="toggleFiltroItem('${checkboxId}', '${valor}', '${tipo}')">
-                <input type="checkbox" id="${checkboxId}" onchange="handleFiltroChange('${valor}', '${tipo}', this.checked)">
+            <div class="filtro-item ${isChecked ? 'selecionado' : ''}" onclick="toggleFiltroItem('${checkboxId}', '${valor}', '${tipo}')">
+                <input type="checkbox" id="${checkboxId}" onchange="handleFiltroChange('${valor}', '${tipo}', this.checked)" ${isChecked ? 'checked' : ''}>
                 <label for="${checkboxId}">${valor}</label>
             </div>
         `;
     });
     
     container.innerHTML = html;
+
+    // Atualiza contadores após preencher
+    if (tipo === 'N2') atualizarContador('contadorN2', filtrosN2Selecionados.length);
+    if (tipo === 'N3') atualizarContador('contadorN3', filtrosN3Selecionados.length);
+    if (tipo === 'CC') atualizarContador('contadorCC', filtrosCCSelecionados.length);
 }
 
 // TOGGLE FILTRO ITEM
@@ -894,7 +919,6 @@ function atualizarEstiloItem(tipo, valor, selecionado) {
 function selecionarTodosN2() {
     selecionarTodosFiltro('N2', 'listaN2', 'contadorN2');
 }
-
 // SELECIONAR TODOS N3
 function selecionarTodosN3() {
     selecionarTodosFiltro('N3', 'listaN3', 'contadorN3');
@@ -931,7 +955,6 @@ function limparTodosN2() {
 function limparTodosN3() {
     limparTodosFiltro('N3', 'listaN3', 'contadorN3');
 }
-
 // LIMPAR TODOS CC
 function limparTodosCC() {
     limparTodosFiltro('CC', 'listaCC', 'contadorCC');
@@ -954,22 +977,6 @@ function limparTodosFiltro(tipo, containerId, contadorId) {
     });
 }
 
-
-// PREENCHER DROPDOWN
-function preencherDropdown(idSelect, valores, textoPlaceholder) {
-    const select = document.getElementById(idSelect);
-    if (!select) return;
-    
-    select.innerHTML = '<option value="">' + textoPlaceholder + '</option>';
-    
-    valores.forEach(valor => {
-        const opcao = document.createElement('option');
-        opcao.value = valor;
-        opcao.textContent = valor;
-        select.appendChild(opcao);
-    });
-}
-
 // APLICAR FILTROS (ATUALIZADA)
 function aplicarFiltros() {
     console.log('Aplicando filtros múltiplos...');
@@ -984,31 +991,31 @@ function aplicarFiltros() {
         const filtroN3Ativo = document.getElementById('usarN3').checked;
         const filtroCCAtivo = document.getElementById('usarCC').checked;
         
+        // Verifica se pelo menos um checkbox principal está ativo
         if (!filtroN2Ativo && !filtroN3Ativo && !filtroCCAtivo) {
-            alert('Selecione pelo menos um filtro para continuar!');
+            alert('Selecione pelo menos um tipo de filtro para continuar!');
             return;
         }
         
         // Verifica se há seleções nos filtros ativos
         if (filtroN2Ativo && filtrosN2Selecionados.length === 0) {
-            alert('Selecione pelo menos uma Diretoria/Marca!');
+            alert('Você ativou o filtro por Diretoria/Marca (N2), mas não selecionou nenhuma opção. Por favor, selecione uma ou desative o filtro.');
             return;
         }
         
         if (filtroN3Ativo && filtrosN3Selecionados.length === 0) {
-            alert('Selecione pelo menos uma Gerência!');
+            alert('Você ativou o filtro por Gerência (N3), mas não selecionou nenhuma opção. Por favor, selecione uma ou desative o filtro.');
             return;
         }
         
         if (filtroCCAtivo && filtrosCCSelecionados.length === 0) {
-            alert('Selecione pelo menos um Centro de Custo!');
+            alert('Você ativou o filtro por Centro de Custo, mas não selecionou nenhuma opção. Por favor, selecione uma ou desative o filtro.');
             return;
         }
         
         dadosFiltrados = todosOsDados.filter(linha => {
-            let incluir = false;
+            let incluir = false; // Lógica OR entre os tipos de filtro
             
-            // Lógica OR entre os tipos de filtro
             if (filtroN2Ativo && filtrosN2Selecionados.includes(linha['N2'])) {
                 incluir = true;
             }
@@ -1079,7 +1086,7 @@ function mostrarResultados() {
     elementoTotal.textContent = total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
     botaoGerar.disabled = false;
     
-    console.log('Total calculado: R$', total.toFixed(2));
+    console.log('Total calculado: R$ ' + total.toFixed(2));
 }
 
 // LIMPAR FILTROS (ATUALIZADA)
@@ -1107,6 +1114,18 @@ function limparFiltros() {
         atualizarContador('contadorN3', 0);
         atualizarContador('contadorCC', 0);
         
+        // Limpa e repreencha os filtros para limpar os checkboxes visíveis
+        if (todosOsDados.length > 0) {
+            preencherFiltros();
+        } else {
+             // Se não há dados, garante que os containers de filtros estão limpos
+            const selects = ['listaN2', 'listaN3', 'listaCC'];
+            selects.forEach(id => {
+                const container = document.getElementById(id);
+                if (container) container.innerHTML = '<p>Carregando opções...</p>';
+            });
+        }
+
         // Limpa resultados
         const containerLista = document.getElementById('listaCentros');
         const elementoTotal = document.getElementById('valorTotal');
@@ -1183,9 +1202,14 @@ function gerarPDF() {
             const valor = parseFloat(linha['Valor']) || 0;
             total += valor;
             
-            if (posicaoY > 250) {
+            if (posicaoY > 250) { // Quebra de página
                 doc.addPage();
                 posicaoY = 30;
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('CENTROS DE CUSTO AUTORIZADOS (continuação):', margemEsquerda, posicaoY);
+                posicaoY += 15;
+                doc.setFont(undefined, 'normal');
             }
             
             const texto = (index + 1) + '. ' + linha['Centro de custo'];
@@ -1231,14 +1255,13 @@ function gerarPDF() {
 }
 
 // ========== GESTAO DE USUARIOS ==========
-
 // ATUALIZAR LISTA USUARIOS
 function atualizarListaUsuarios() {
     const listaDiv = document.getElementById('listaUsuarios');
     if (!listaDiv) return;
     
     if (usuarios.length === 0) {
-        listaDiv.innerHTML = '<p style="text-align: center; color: #6c757d;">Nenhum usuário cadastrado</p>';
+        listaDiv.innerHTML = '<p style="text-align: center; color: #6c757d;">Nenhum usuário cadastrado. Atualize **usuarios.csv** no GitHub.</p>';
         return;
     }
     
@@ -1252,207 +1275,71 @@ function atualizarListaUsuarios() {
                     <small>Matrícula: ${usuario.matricula} | Perfil: ${perfilTexto}</small>
                 </div>
                 <div class="usuario-actions">
-                    <button onclick="editarUsuario(${usuario.id})" class="btn btn-info">✏️ Editar</button>
-                    <button onclick="excluirUsuario(${usuario.id})" class="btn btn-danger">🗑️ Excluir</button>
+                    <button onclick="mostrarModalInstrucoes('editar')" class="btn btn-info" disabled>✏️ Editar</button>
+                    <button onclick="mostrarModalInstrucoes('excluir')" class="btn btn-danger" disabled>🗑️ Excluir</button>
                 </div>
             </div>
         `;
     });
     
     listaDiv.innerHTML = html;
-    console.log('Lista de usuários atualizada:', usuarios.length, 'usuários');
+    console.log('Lista de usuários atualizada (apenas leitura):', usuarios.length, 'usuários');
 }
 
-// ADICIONAR USUARIO
+// FUNÇÕES DE GESTÃO DE USUÁRIOS AGORA MOSTRAM INSTRUÇÕES
 function adicionarUsuario() {
-    // Limpa o formulário
-    document.getElementById('usuarioId').value = '';
-    document.getElementById('usuarioMatricula').value = '';
-    document.getElementById('usuarioNome').value = '';
-    document.getElementById('usuarioSenha').value = '';
-    document.getElementById('usuarioPerfil').value = '';
-    
-    // Muda o título
-    document.getElementById('modalTitulo').textContent = '➕ Adicionar Usuário';
-    
-        // Mostra o modal
-    document.getElementById('modalUsuario').style.display = 'flex';
-    
-    // Foca no campo matrícula
-    setTimeout(() => {
-        document.getElementById('usuarioMatricula').focus();
-    }, 100);
+    mostrarModalInstrucoes('adicionar');
 }
 
-// EDITAR USUARIO
+// EDITAR USUARIO (agora mostra instruções)
 function editarUsuario(id) {
-    const usuario = usuarios.find(u => u.id === id);
-    if (!usuario) {
-        alert('Usuário não encontrado.');
-        return;
-    }
-    
-    // Preenche o formulário
-    document.getElementById('usuarioId').value = usuario.id;
-    document.getElementById('usuarioMatricula').value = usuario.matricula;
-    document.getElementById('usuarioNome').value = usuario.nome;
-    document.getElementById('usuarioSenha').value = usuario.senha;
-    document.getElementById('usuarioPerfil').value = usuario.perfil;
-    
-    // Muda o título
-    document.getElementById('modalTitulo').textContent = '✏️ Editar Usuário';
-    
-    // Mostra o modal
-    document.getElementById('modalUsuario').style.display = 'flex';
-    
-    // Foca no campo nome
-    setTimeout(() => {
-        document.getElementById('usuarioNome').focus();
-    }, 100);
+    mostrarModalInstrucoes('editar', id);
 }
 
-// SALVAR USUARIO
+// SALVAR USUARIO (agora mostra instruções)
 function salvarUsuario() {
-    const id = document.getElementById('usuarioId').value;
-    const matricula = document.getElementById('usuarioMatricula').value.trim();
-    const nome = document.getElementById('usuarioNome').value.trim();
-    const senha = document.getElementById('usuarioSenha').value.trim();
-    const perfil = document.getElementById('usuarioPerfil').value;
-    
-    // Validações
-    if (!matricula || !nome || !senha || !perfil) {
-        alert('Por favor, preencha todos os campos.');
-        return;
-    }
-    
-    // Verifica se matrícula já existe (exceto para o próprio usuário em edição)
-    const matriculaExiste = usuarios.find(u => 
-        u.matricula.toLowerCase() === matricula.toLowerCase() && 
-        u.id !== parseInt(id || '0')
-    );
-    
-    if (matriculaExiste) {
-        alert('Já existe um usuário com esta matrícula.');
-        document.getElementById('usuarioMatricula').focus();
-        return;
-    }
-    
-    if (id) {
-        // Editar usuário existente
-        const usuario = usuarios.find(u => u.id === parseInt(id));
-        if (usuario) {
-            usuario.matricula = matricula;
-            usuario.nome = nome;
-            usuario.senha = senha;
-            usuario.perfil = perfil;
-            
-            console.log('Usuário editado:', usuario.nome);
-            alert('✅ Usuário editado com sucesso!');
-        }
-    } else {
-        // Adicionar novo usuário
-        const novoUsuario = {
-            id: proximoIdUsuario++,
-            matricula: matricula,
-            nome: nome,
-            senha: senha,
-            perfil: perfil
-        };
-        
-        usuarios.push(novoUsuario);
-        console.log('Usuário adicionado:', novoUsuario.nome);
-        alert('✅ Usuário adicionado com sucesso!');
-    }
-    
-    // Salva no localStorage
-    salvarUsuarios();
-    
-    // Atualiza a lista
-    atualizarListaUsuarios();
-    
-    // Fecha o modal
-    fecharModalUsuario();
+    mostrarModalInstrucoes('salvar');
 }
 
-// EXCLUIR USUARIO
+// EXCLUIR USUARIO (agora mostra instruções)
 function excluirUsuario(id) {
-    const usuario = usuarios.find(u => u.id === id);
-    if (!usuario) {
-        alert('Usuário não encontrado.');
-        return;
-    }
-    
-    // Não permite excluir o próprio usuário logado
-    if (usuarioLogado && usuarioLogado.id === id) {
-        alert('Você não pode excluir seu próprio usuário.');
-        return;
-    }
-    
-    // Não permite excluir se for o último admin
-    if (usuario.perfil === 'admin') {
-        const admins = usuarios.filter(u => u.perfil === 'admin');
-        if (admins.length === 1) {
-            alert('Não é possível excluir o último administrador do sistema.');
-            return;
-        }
-    }
-    
-    if (confirm('Deseja realmente excluir o usuário "' + usuario.nome + '"?')) {
-        usuarios = usuarios.filter(u => u.id !== id);
-        salvarUsuarios();
-        atualizarListaUsuarios();
-        
-        console.log('Usuário excluído:', usuario.nome);
-        alert('✅ Usuário excluído com sucesso!');
-    }
+    mostrarModalInstrucoes('excluir', id);
 }
 
-// FECHAR MODAL USUARIO
+// MOSTRAR MODAL DE INSTRUÇÕES
+function mostrarModalInstrucoes(acao, id = null) {
+    const modal = document.getElementById('modalUsuario');
+    const modalTitulo = document.getElementById('modalTitulo');
+    const modalBody = modal.querySelector('.modal-body');
+
+    modalTitulo.textContent = 'Ação Não Suportada Diretamente';
+    modalBody.innerHTML = `
+        <p>A ${acao} de usuários precisa ser feita editando o arquivo <strong>usuarios.csv</strong> diretamente no seu repositório GitHub.</p>
+        <p>Isso garante que as alterações sejam permanentes e visíveis para todos os usuários.</p>
+        <p class="upload-hint" style="margin-top: 1rem;">
+            **AVISO DE SEGURANÇA:** Não use senhas reais em <strong>usuarios.csv</strong> no GitHub, pois o arquivo é público.
+        </p>
+        <p>URL do arquivo de usuários: <a href="${GITHUB_USERS_CSV_URL}" target="_blank">usuarios.csv no GitHub</a></p>
+    `;
+    modal.style.display = 'flex';
+}
+
+// FECHAR MODAL USUARIO (reaproveitado para o modal de instruções)
 function fecharModalUsuario() {
     const modal = document.getElementById('modalUsuario');
     if (modal) {
         modal.style.display = 'none';
     }
-    
-    // Limpa o formulário
-    document.getElementById('usuarioId').value = '';
-    document.getElementById('usuarioMatricula').value = '';
-    document.getElementById('usuarioNome').value = '';
-    document.getElementById('usuarioSenha').value = '';
-    document.getElementById('usuarioPerfil').value = '';
 }
 
-// CONFIGURAR EVENTOS DO MODAL (chamado quando o modal é aberto)
+// CONFIGURAR EVENTOS DO MODAL (para fechar com ESC)
 function configurarEventosModal() {
-    const form = document.getElementById('formUsuario');
-    const inputs = form.querySelectorAll('input, select');
-    
-    // Enter para navegar entre campos
-    inputs.forEach((input, index) => {
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (index < inputs.length - 1) {
-                    inputs[index + 1].focus();
-                } else {
-                    salvarUsuario();
-                }
-            }
-        });
-    });
-    
-    // ESC para fechar modal
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             fecharModalUsuario();
         }
     });
 }
-
-// INICIALIZAR EVENTOS DO MODAL (chama uma vez)
-document.addEventListener('DOMContentLoaded', function() {
-    configurarEventosModal();
-});
 
 // LOG DE FINALIZACAO
 console.log('Sistema de gestão de usuários carregado completamente!');
