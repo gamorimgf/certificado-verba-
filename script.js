@@ -1224,7 +1224,6 @@ img.onload = function() { // Garante que a imagem está carregada antes de adici
         posicaoY += 15;
 
 // Adicionar Logo no PDF (posição estimada, ajuste se precisar)
-const logoUrl = 'https://cdn-sites-assets.mziq.com/wp-content/uploads/sites/1247/2023/06/Logo.png';
 doc.addImage(logoUrl, 'PNG', 85, 15, 40, 15); // x, y, width, height. Ajuste para o centro e tamanho adequado.
 posicaoY = 40; // Ajusta a posição Y para o texto vir abaixo do logo
         
