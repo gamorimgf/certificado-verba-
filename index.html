@@ -179,20 +179,20 @@
 
                 <!-- TAB GESTÃO DE DADOS -->
                 <div id="tabDados" class="tab-content active">
-                    <h3>📊 Upload de Dados CSV</h3>
-                    
+                    <h3>📊 Upload de Dados CSV (para visualização local)</h3>
                     <div class="upload-section-admin">
                         <div class="upload-area" id="uploadAreaAdmin">
                             <div class="upload-content">
                                 <div class="upload-icon">📋</div>
                                 <p><strong>Clique aqui ou arraste o arquivo CSV de dados</strong></p>
                                 <p class="upload-hint">Colunas: N1, N2, N3, N4, N5, Centro de custo, Valor</p>
+                                <p class="upload-hint">⚠️ Para persistir, atualize **dados_centros.csv** no GitHub.</p>
                                 <input type="file" id="fileInputDados" accept=".csv" style="display: none;">
                             </div>
                         </div>
                         <div class="upload-status" id="uploadStatusDados"></div>
                         <div class="upload-actions">
-                            <button onclick="selecionarArquivoDados()" class="btn btn-primary">📁 Selecionar Arquivo</button>
+                            <button onclick="selecionarArquivoDados()" class="btn btn-primary">📁 Carregar Local</button>
                             <button onclick="usarDadosDemo()" class="btn btn-secondary">🧪 Carregar Dados Demo</button>
                         </div>
                     </div>
@@ -205,30 +205,37 @@
 
                 <!-- TAB GESTÃO DE USUÁRIOS -->
                 <div id="tabUsuarios" class="tab-content">
-                    <h3>👥 Gestão de Usuários</h3>
+                    <h3>👥 Gestão de Usuários (atualização via GitHub)</h3>
                     
                     <div class="usuarios-upload">
-                        <h4>📤 Upload de Usuários CSV</h4>
+                        <h4>📤 Carregar Usuários CSV (para visualização local)</h4>
                         <div class="upload-area-small" id="uploadAreaUsuarios">
                             <div class="upload-content">
                                 <div class="upload-icon">👥</div>
                                 <p><strong>Arquivo CSV de usuários</strong></p>
                                 <p class="upload-hint">Colunas: Matricula, Nome, Senha, Perfil</p>
+                                <p class="upload-hint">⚠️ Para persistir, atualize **usuarios.csv** no GitHub.</p>
                                 <input type="file" id="fileInputUsuarios" accept=".csv" style="display: none;">
                             </div>
                         </div>
                         <div class="upload-status" id="uploadStatusUsuarios"></div>
-                        <button onclick="selecionarArquivoUsuarios()" class="btn btn-primary">📤 Upload Usuários</button>
+                        <button onclick="selecionarArquivoUsuarios()" class="btn btn-primary">📁 Carregar Local</button>
                         <button onclick="baixarTemplateUsuarios()" class="btn btn-info">📥 Baixar Template</button>
                     </div>
 
                     <div class="usuarios-lista">
-                        <h4>📋 Lista de Usuários</h4>
+                        <h4>📋 Lista de Usuários (apenas leitura)</h4>
                         <div class="usuarios-actions">
-                            <button onclick="adicionarUsuario()" class="btn btn-success">➕ Adicionar Usuário</button>
+                            <button class="btn btn-success" disabled>➕ Adicionar Usuário (via GitHub)</button>
                             <button onclick="atualizarListaUsuarios()" class="btn btn-info">🔄 Atualizar Lista</button>
                         </div>
                         <div id="listaUsuarios" class="usuarios-table"></div>
+                         <p class="upload-hint" style="margin-top: 1rem; text-align: center;">
+                            ⚠️ Para adicionar, editar ou excluir usuários, edite o arquivo **usuarios.csv** diretamente no seu repositório GitHub.
+                        </p>
+                         <p class="upload-hint" style="margin-top: 1rem; text-align: center;">
+                            **AVISO DE SEGURANÇA:** Não use senhas reais em **usuarios.csv** no GitHub, pois o arquivo é público.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -239,42 +246,18 @@
     <div id="modalUsuario" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitulo">➕ Adicionar Usuário</h3>
+                <h3 id="modalTitulo">Ação Não Suportada</h3>
                 <button onclick="fecharModalUsuario()" class="btn-close">✖️</button>
             </div>
             <div class="modal-body">
-                <form id="formUsuario" onsubmit="return false;">
-                    <input type="hidden" id="usuarioId">
-                    
-                    <div class="input-group">
-                        <label for="usuarioMatricula">📋 Matrícula:</label>
-                        <input type="text" id="usuarioMatricula" required>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="usuarioNome">👤 Nome:</label>
-                        <input type="text" id="usuarioNome" required>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="usuarioSenha">🔑 Senha:</label>
-                        <input type="password" id="usuarioSenha" required>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="usuarioPerfil">👥 Perfil:</label>
-                        <select id="usuarioPerfil" required>
-                            <option value="">Selecione o perfil</option>
-                            <option value="admin">👨‍💼 Administrador</option>
-                            <option value="user">👤 Usuário</option>
-                        </select>
-                    </div>
-                    
-                    <div class="modal-actions">
-                        <button type="button" onclick="salvarUsuario()" class="btn btn-success">💾 Salvar</button>
-                        <button type="button" onclick="fecharModalUsuario()" class="btn btn-secondary">❌ Cancelar</button>
-                    </div>
-                </form>
+                <p>A adição, edição ou exclusão de usuários precisa ser feita editando o arquivo <strong>usuarios.csv</strong> diretamente no seu repositório GitHub.</p>
+                <p>Isso garante que as alterações sejam permanentes e visíveis para todos os usuários.</p>
+                 <p class="upload-hint" style="margin-top: 1rem;">
+                    **AVISO DE SEGURANÇA:** Não use senhas reais em **usuarios.csv** no GitHub, pois o arquivo é público.
+                </p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" onclick="fecharModalUsuario()" class="btn btn-secondary">Fechar</button>
             </div>
         </div>
     </div>
