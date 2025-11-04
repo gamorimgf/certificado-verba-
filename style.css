@@ -423,6 +423,27 @@ body {
     align-items: center;
 }
 
+/* Adicionado ao HTML anterior */
+/* select { 
+    width: 100%;
+    padding: 1rem 1.2rem;
+    border: 2px solid #e1e8ed;
+    border-radius: 12px;
+    font-size: 1rem;
+    background: white;
+    transition: all 0.3s ease;
+} */
+/* select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+}
+select:disabled {
+    background: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+} */
+
 .botoes-acao {
     display: flex;
     gap: 1.5rem;
@@ -905,27 +926,6 @@ body {
     border: 1px solid #3498db;
 }
 
-/* RESPONSIVIDADE PARA FILTROS */
-@media (max-width: 768px) {
-    .filtro-header {
-        flex-direction: column;
-        gap: 0.5rem;
-        text-align: center;
-    }
-    
-    .filtro-acoes {
-        justify-content: center;
-    }
-    
-    .filtro-lista {
-        max-height: 200px;
-    }
-    
-    .filtro-item {
-        padding: 0.6rem;
-    }
-}
-
 /* RESPONSIVIDADE */
 @media (max-width: 768px) {
     .login-screen {
@@ -986,3 +986,115 @@ body {
     
     .painel-header {
         padding: 1.5rem;
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .tab-content {
+        padding: 1.5rem;
+    }
+    
+    .usuario-item {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .usuario-actions {
+        justify-content: center;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+}
+/* ANIMAÇÕES MELHORADAS */
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(30px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+@keyframes slideIn {
+    from { 
+        transform: translateX(-100%); 
+        opacity: 0;
+    }
+    to { 
+        transform: translateX(0); 
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from { 
+        transform: scale(0.9); 
+        opacity: 0;
+    }
+    to { 
+        transform: scale(1); 
+        opacity: 1;
+    }
+}
+
+.filtros-section, .resultados-section, .tab-content {
+    animation: fadeIn 0.6s ease;
+}
+
+.painel-admin {
+    animation: fadeIn 0.4s ease;
+}
+
+.painel-container {
+    animation: scaleIn 0.4s ease;
+}
+
+.modal {
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    animation: scaleIn 0.3s ease;
+}
+
+.login-card {
+    animation: scaleIn 0.6s ease;
+}
+
+/* EFEITOS HOVER MELHORADOS */
+.login-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 
+        0 40px 80px rgba(0, 0, 0, 0.3),
+        0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.filtros-section:hover, .resultados-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* SCROLLBAR PERSONALIZADA */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #2980b9 0%, #1f618d 100%);
+}
