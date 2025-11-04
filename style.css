@@ -1098,3 +1098,16 @@ select:disabled {
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, #2980b9 0%, #1f618d 100%);
 }
+
+/* ESTILO PARA O LOGO NO CABEÇALHO */
+.system-logo-img {
+    height: 40px; /* Ajuste a altura conforme necessário */
+    width: auto;
+    margin-right: 10px; /* Espaço entre o logo e o texto */
+}
+
+@media (max-width: 768px) {
+    .system-logo-img {
+        height: 30px; /* Ajuste para telas menores */
+    }
+}
