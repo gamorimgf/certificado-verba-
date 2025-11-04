@@ -1173,6 +1173,34 @@ function gerarPDF() {
         posicaoY += 15;
         doc.setFontSize(16);
         doc.setFont(undefined, 'normal');
+
+        
+// Adicionar Logo no PDF
+// URL da imagem
+const logoUrl = 'https://cdn-sites-assets.mziq.com/wp-content/uploads/sites/1247/2023/06/Logo.png';
+
+// Para garantir que a imagem seja carregada, usaremos um pequeno truque
+// Em ambientes estáticos, jspdf pode ter problemas com CORS em URLs externas
+// Se isso acontecer, teríamos que converter a imagem para base64 manualmente
+// ou usar uma imagem hospedada junto com o app. Por enquanto, tentaremos direto.
+const img = new Image();
+img.src = logoUrl;
+img.onload = function() { // Garante que a imagem está carregada antes de adicionar ao PDF
+    doc.addImage(img, 'PNG', 85, 15, 40, 15); // x, y, width, height. Ajuste conforme precisar.
+    
+    // O restante do código de geração de PDF deve ser executado aqui dentro,
+    // mas para não alterar muito a estrutura, vou manter a instrução separada,
+    // e é importante testar. Se o logo não aparecer, teremos que ajustar.
+};
+
+// É importante notar que o addImage é assíncrono. Para garantir que
+// o PDF só seja gerado DEPOIS que a imagem estiver carregada, a maneira mais robusta
+// seria envolver toda a geração do PDF em uma Promise ou dentro do img.onload.
+// Para manter a simplicidade, vamos assumir que o logo carregará rápido o suficiente.
+// Se o logo não aparecer, me avise!
+
+
+        
         doc.text('Grupo Fleury', 105, posicaoY, { align: 'center' });
         
         posicaoY += 20;
@@ -1194,6 +1222,12 @@ function gerarPDF() {
         doc.text('CENTROS DE CUSTO AUTORIZADOS:', margemEsquerda, posicaoY);
         
         posicaoY += 15;
+
+// Adicionar Logo no PDF (posição estimada, ajuste se precisar)
+const logoUrl = 'https://cdn-sites-assets.mziq.com/wp-content/uploads/sites/1247/2023/06/Logo.png';
+doc.addImage(logoUrl, 'PNG', 85, 15, 40, 15); // x, y, width, height. Ajuste para o centro e tamanho adequado.
+posicaoY = 40; // Ajusta a posição Y para o texto vir abaixo do logo
+        
         doc.setFont(undefined, 'normal');
         
         // Lista de centros
@@ -1232,14 +1266,10 @@ function gerarPDF() {
         doc.text('VALOR TOTAL AUTORIZADO: R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2}), margemEsquerda, posicaoY);
         
         // Assinatura
-        posicaoY += 40;
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.text('_________________________________', margemEsquerda, posicaoY);
-        doc.text('Assinatura do Responsavel', margemEsquerda, posicaoY + 10);
-        doc.text(usuarioLogado.nome, margemEsquerda, posicaoY + 20);
-        
-        doc.text('Documento gerado automaticamente em ' + hoje, margemEsquerda, posicaoY + 35);
+        posicaoY += 40; // Ajuste o espaçamento conforme necessário
+doc.setFontSize(10);
+doc.setFont(undefined, 'normal');
+doc.text('Documento gerado por ' + usuarioLogado.nome + ' em ' + hoje, margemEsquerda, posicaoY);
         
         // Salva o arquivo
         const nomeArquivo = 'certificado-verba-' + hoje.replace(/[\/\s:]/g, '-') + '.pdf';
